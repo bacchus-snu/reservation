@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/bacchus-snu/reservation/config"
 	goerrors "github.com/go-errors/errors"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
@@ -12,6 +13,9 @@ import (
 
 func main() {
 	rand.Seed(time.Now().UTC().UnixNano())
+	if err := config.Parse(); err != nil {
+		logrus.WithError(err).Fatal("failed to parse configuration")
+	}
 
 	// http handler
 	r := mux.NewRouter()
