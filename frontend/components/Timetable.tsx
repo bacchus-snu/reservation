@@ -191,7 +191,14 @@ function TimetableColumn(props: TimetableColumnProps) {
   const { styles: popperStyles, attributes: popperAttributes } = usePopper(
     selectionElement,
     popperElement,
-    { placement: 'right-start' },
+    {
+      placement: 'right-start',
+      modifiers: [
+        { name: 'offset', options: { offset: [0, 8] } },
+        { name: 'preventOverflow', options: { padding: 8 } },
+        { name: 'flip', options: { padding: 8 } },
+      ],
+    },
   );
 
   const handleCancel = useCallback(
@@ -352,7 +359,7 @@ function MetaPopup(props: MetaPopupProps, ref: React.Ref<HTMLDivElement>) {
   return (
     <div
       ref={ref}
-      className="mx-2 p-2 w-60 flex flex-col space-y-2 border-2 border-gray-400 bg-white"
+      className="p-2 w-60 flex flex-col space-y-2 border-2 border-gray-400 bg-white"
       style={popperStyles}
       {...popperAttributes}
     >
