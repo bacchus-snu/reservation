@@ -1,12 +1,48 @@
-import Head from 'next/head'
-import Timetable from '../components/Timetable'
+import Head from 'next/head';
+import { useCallback, useEffect, useState } from 'react';
+
+import Timetable, { ScheduleType } from '../components/Timetable';
+import type { Schedule } from '../components/Timetable';
 
 export default function Home() {
-  const schedules = [
-    [
-      { name: 'Foo', start: 0, end: 3 },
-    ],
-  ];
+  const [selectInProgress, setSelectInProgress] = useState<boolean>(false);
+  const [selection, setSelection] = useState<{ idx: number, from: number, to: number }>();
+
+  const handleTimeSelectUpdate = useCallback(
+    data => {
+      setSelectInProgress(true);
+      setSelection(data);
+    },
+    [],
+  );
+
+  const handleTimeSelectDone = useCallback(
+    data => {
+      setSelectInProgress(false);
+      if (data.cancelled) {
+        setSelection(undefined);
+      } else {
+        setSelection(data);
+      }
+    },
+    [],
+  );
+
+  const schedules: Schedule[][] = Array(7).fill('').map(() => []);
+  schedules[0].push({ name: 'Foo', start: 0, end: 3, type: ScheduleType.Past });
+  if (selection != null) {
+    const type = selectInProgress ? ScheduleType.Selecting : ScheduleType.Selected;
+    const idx = selection.idx;
+    let start = selection.from, end = selection.to;
+    if (start > end) {
+      const t = start;
+      start = end;
+      end = t;
+    }
+    end += 1;
+
+    schedules[idx].push({ name: '선택중', start, end, type });
+  }
 
   return (
     <div className="container mx-auto">
@@ -16,8 +52,13 @@ export default function Home() {
       </Head>
 
       <main className="py-20">
-        <Timetable dateStartAt={new Date('2021-07-12')} schedules={schedules} />
+        <Timetable
+          dateStartAt={new Date('2021-07-12')}
+          schedules={schedules}
+          onTimeSelectUpdate={handleTimeSelectUpdate}
+          onTimeSelectDone={handleTimeSelectDone}
+        />
       </main>
     </div>
-  )
+  );
 }
