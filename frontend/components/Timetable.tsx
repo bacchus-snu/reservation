@@ -1,3 +1,5 @@
+import { useCallback, useEffect, useState } from 'react';
+
 export type Props = {
   /** 시간표를 그리기 시작할 날짜 */
   dateStartAt: Date;
@@ -6,8 +8,11 @@ export type Props = {
 };
 
 type TimetableColumnProps = {
+  idx: number;
   heading: React.ReactNode;
   schedules: Schedule[];
+  onTimeSelectUpdate?(data: { idx: number; from: number; to: number }): void;
+  onTimeSelectDone?(data: { idx: number; from: number; to: number } | { idx: number; cancelled: true }): void;
 };
 
 export type Schedule = {
@@ -19,9 +24,131 @@ export type Schedule = {
   end: number;
 };
 
+type TimetableCellProps = {
+  idx: number;
+  onDragStart?(idx: number): void;
+  onDragUpdate?(idx: number): void;
+  onDragEnd?(idx: number): boolean;
+};
+
+function TimetableCell(props: TimetableCellProps) {
+  const { idx, onDragStart: handleDragStart, onDragUpdate: handleDragUpdate, onDragEnd: handleDragEnd } = props;
+  const dotted = idx % 2 === 1;
+
+  const handleMouseDown = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      if (handleDragStart && e.button === 0) {
+        e.preventDefault();
+        e.stopPropagation();
+        handleDragStart(idx);
+      }
+    },
+    [idx, handleDragStart],
+  );
+
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      if (handleDragUpdate && (e.buttons & 1) === 1) {
+        e.preventDefault();
+        e.stopPropagation();
+        handleDragUpdate(idx);
+      }
+    },
+    [idx, handleDragUpdate],
+  );
+
+  const handleMouseUp = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      if (handleDragEnd && e.button === 0) {
+        e.preventDefault();
+        if (handleDragEnd(idx)) {
+          e.stopPropagation();
+        }
+      }
+    },
+    [idx, handleDragEnd],
+  );
+
+  return (
+    <div
+      className={`border-t border-gray-200 ${dotted ? 'border-dotted' : ''}`}
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+    />
+  );
+}
+
 function TimetableColumn(props: TimetableColumnProps) {
+  const { idx: columnIdx, onTimeSelectUpdate, onTimeSelectDone } = props;
+
   const schedules = [...props.schedules];
   schedules.sort((a, b) => a.start - b.start);
+
+  const [dragging, setDragging] = useState<boolean>(false);
+  const [dragFrom, setDragFrom] = useState<number>();
+  const [dragTo, setDragTo] = useState<number>();
+
+  const handleDragStart = useCallback(
+    (idx: number) => {
+      setDragFrom(idx);
+      setDragTo(idx);
+      setDragging(true);
+    },
+    [],
+  );
+
+  const handleDragUpdate = useCallback(
+    (idx: number) => {
+      if (dragging) {
+        setDragTo(idx);
+      }
+    },
+    [dragging],
+  );
+
+  const handleDragEnd = useCallback(
+    (idx: number) => {
+      if (dragging) {
+        if (onTimeSelectDone != null && dragFrom != null) {
+          onTimeSelectDone({ idx: columnIdx, from: dragFrom, to: idx });
+        }
+        setDragFrom(undefined);
+        setDragTo(undefined);
+        setDragging(false);
+        return true;
+      }
+      return false;
+    },
+    [dragging, dragFrom, columnIdx, onTimeSelectDone],
+  );
+
+  useEffect(
+    () => {
+      if (dragging && dragFrom != null && dragTo != null) {
+        onTimeSelectUpdate?.({ idx: columnIdx, from: dragFrom, to: dragTo });
+      }
+    },
+    [dragging, dragFrom, dragTo, columnIdx, onTimeSelectUpdate],
+  );
+
+  useEffect(
+    () => {
+      const handleGlobalMouseUp = (e: MouseEvent) => {
+        if (dragging && e.button === 0) {
+          setDragFrom(undefined);
+          setDragTo(undefined);
+          setDragging(false);
+          onTimeSelectDone?.({ idx: columnIdx, cancelled: true });
+        }
+      };
+      window.addEventListener('mouseup', handleGlobalMouseUp);
+      return () => {
+        window.removeEventListener('mouseup', handleGlobalMouseUp);
+      };
+    },
+    [columnIdx, dragging, onTimeSelectDone],
+  );
 
   const column = [];
   let i = 0;
@@ -41,9 +168,14 @@ function TimetableColumn(props: TimetableColumnProps) {
       );
       i += span;
     } else {
-      const dotted = i % 2 === 1;
       column.push(
-        <div key={i} className={`border-t border-gray-200 ${dotted ? 'border-dotted' : ''}`} />
+        <TimetableCell
+          key={i}
+          idx={i}
+          onDragStart={handleDragStart}
+          onDragUpdate={handleDragUpdate}
+          onDragEnd={handleDragEnd}
+        />
       );
       i += 1;
     }
@@ -75,6 +207,24 @@ export default function Timetable(props: Props) {
     );
   }
 
+  const handleUpdate = useCallback(
+    data => {
+      console.log(`update to column ${data.idx}: ${data.from}..=${data.to}`);
+    },
+    [],
+  );
+
+  const handleDone = useCallback(
+    data => {
+      if (data.cancelled) {
+        console.log('selection cancelled');
+      } else {
+        console.log(`selected column ${data.idx}: ${data.from}..=${data.to}`);
+      }
+    },
+    [],
+  );
+
   const columns = [];
   for (let i = 0; i < 7; i++) {
     const date = new Date(props.dateStartAt);
@@ -92,7 +242,16 @@ export default function Timetable(props: Props) {
     );
 
     const schedules = props.schedules[i] ?? [];
-    columns.push(<TimetableColumn key={i} heading={heading} schedules={schedules} />);
+    columns.push(
+      <TimetableColumn
+        key={i}
+        idx={i}
+        heading={heading}
+        schedules={schedules}
+        onTimeSelectUpdate={handleUpdate}
+        onTimeSelectDone={handleDone}
+      />
+    );
   }
 
   return (
