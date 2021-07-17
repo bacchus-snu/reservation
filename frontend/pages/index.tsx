@@ -1,12 +1,13 @@
 import Head from 'next/head';
 import { useCallback, useEffect, useState } from 'react';
 
-import Timetable, { ScheduleType } from '../components/Timetable';
+import Timetable, { ScheduleType, SelectedScheduleMeta } from '../components/Timetable';
 import type { Schedule } from '../components/Timetable';
 
 export default function Home() {
   const [selectInProgress, setSelectInProgress] = useState<boolean>(false);
   const [selection, setSelection] = useState<{ idx: number, from: number, to: number }>();
+  const [selectionMeta, setSelectionMeta] = useState<SelectedScheduleMeta>();
 
   const handleTimeSelectUpdate = useCallback(
     data => {
@@ -19,6 +20,13 @@ export default function Home() {
   const handleTimeSelectDone = useCallback(
     data => {
       setSelectInProgress(false);
+      setSelectionMeta({
+        name: '',
+        repeatCount: 1,
+        email: '',
+        phoneNumber: '',
+        comment: '',
+      });
       if (data.cancelled) {
         setSelection(undefined);
       } else {
@@ -55,8 +63,10 @@ export default function Home() {
         <Timetable
           dateStartAt={new Date('2021-07-12')}
           schedules={schedules}
+          selectedMeta={selectionMeta}
           onTimeSelectUpdate={handleTimeSelectUpdate}
           onTimeSelectDone={handleTimeSelectDone}
+          onMetaChange={setSelectionMeta}
         />
       </main>
     </div>

@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
+import { forwardRef, useCallback, useEffect, useState } from 'react';
+import { usePopper } from 'react-popper';
 
 export type Props = {
   /** 시간표를 그리기 시작할 날짜 */
@@ -7,6 +8,8 @@ export type Props = {
   schedules: Schedule[][];
   /** 현재 선택된 일정 */
   selected?: Schedule;
+  /** 선택된 일정의 정보 */
+  selectedMeta?: SelectedScheduleMeta;
   /** 일정 선택이 업데이트된 경우 발생하는 이벤트 */
   onTimeSelectUpdate?(data: { idx: number; from: number; to: number }): void;
   /**
@@ -15,14 +18,18 @@ export type Props = {
    * 드래그가 범위를 벗어난 경우 선택이 취소되며 그 경우 `data.cancelled`가 `true`입니다.
    * */
   onTimeSelectDone?(data: { idx: number; from: number; to: number } | { idx: number; cancelled: true }): void;
+  /** 일정 정보가 업데이트된 경우 발생하는 이벤트 */
+  onMetaChange?(meta: SelectedScheduleMeta): void;
 };
 
 type TimetableColumnProps = {
   idx: number;
   heading: React.ReactNode;
   schedules: Schedule[];
+  selectedMeta?: SelectedScheduleMeta;
   onTimeSelectUpdate?(data: { idx: number; from: number; to: number }): void;
   onTimeSelectDone?(data: { idx: number; from: number; to: number } | { idx: number; cancelled: true }): void;
+  onMetaChange?(meta: SelectedScheduleMeta): void;
 };
 
 export type Schedule = {
@@ -34,6 +41,19 @@ export type Schedule = {
   end: number;
   /** 일정 종류 */
   type: ScheduleType;
+};
+
+export type SelectedScheduleMeta = {
+  /** 반복 횟수 */
+  repeatCount: number;
+  /** 단체 이름 */
+  name: string;
+  /** 연락 가능한 이메일 */
+  email: string;
+  /** 연락 가능한 전화번호 */
+  phoneNumber: string;
+  /** 사용 목적 등 */
+  comment: string;
 };
 
 export enum ScheduleType {
@@ -107,7 +127,7 @@ function TimetableCell(props: TimetableCellProps) {
 }
 
 function TimetableColumn(props: TimetableColumnProps) {
-  const { idx: columnIdx, onTimeSelectUpdate, onTimeSelectDone } = props;
+  const { idx: columnIdx, selectedMeta, onTimeSelectUpdate, onTimeSelectDone, onMetaChange } = props;
 
   const schedules = [...props.schedules];
   schedules.sort((a, b) => a.start - b.start);
@@ -150,6 +170,14 @@ function TimetableColumn(props: TimetableColumnProps) {
     [dragging, dragFrom, columnIdx, onTimeSelectDone],
   );
 
+  const [selectionElement, setSelectionElement] = useState<HTMLDivElement | null>(null);
+  const [popperElement, setPopperElement] = useState<HTMLDivElement | null>(null);
+  const { styles: popperStyles, attributes: popperAttributes } = usePopper(
+    selectionElement,
+    popperElement,
+    { placement: 'right-start' },
+  );
+
   useEffect(
     () => {
       if (dragging && dragFrom != null && dragTo != null) {
@@ -185,6 +213,7 @@ function TimetableColumn(props: TimetableColumnProps) {
     if (schedules.length > scheduleIdx && schedules[scheduleIdx].start === i) {
       const schedule = schedules[scheduleIdx];
       const span = schedule.end - schedule.start;
+      const ref = schedule.type === ScheduleType.Selected ? setSelectionElement : undefined;
       createCell = schedule.type === ScheduleType.Selecting || schedule.type === ScheduleType.Selected;
 
       let bgColor = 'bg-gray-100';
@@ -199,12 +228,25 @@ function TimetableColumn(props: TimetableColumnProps) {
       column.push(
         <div
           key={`schedule-${i}`}
+          ref={ref}
           className={`border-2 border-gray-300 ${bgColor} text-center z-10 pointer-events-none`}
           style={{ gridColumn: ((columnIdx + 1) * 2 + 1).toString(), gridRow: `${i + 2} / span ${span}` }}
         >
           {schedule.name}
         </div>
       );
+      if (ref != null && selectedMeta != null) {
+        column.push(
+          <ForwardedMetaPopup
+            key={`schedule-${i}-popper`}
+            ref={setPopperElement}
+            meta={selectedMeta}
+            onChange={onMetaChange}
+            popperStyles={popperStyles.popper}
+            popperAttributes={popperAttributes.popper}
+          />
+        );
+      }
       scheduleIdx += 1;
 
       if (!createCell) {
@@ -236,6 +278,110 @@ function TimetableColumn(props: TimetableColumnProps) {
   );
 }
 
+type MetaPopupProps = {
+  meta: SelectedScheduleMeta;
+  onChange?(meta: SelectedScheduleMeta): void;
+  popperStyles: React.CSSProperties,
+  popperAttributes: { [key: string]: string } | undefined,
+};
+
+function MetaPopup(props: MetaPopupProps, ref: React.Ref<HTMLDivElement>) {
+  const { meta, onChange, popperStyles, popperAttributes } = props;
+
+  const handleChange = useCallback(
+    <F extends keyof MetaPopupProps['meta']>(field: F, value: MetaPopupProps['meta'][F]) => {
+      if (meta[field] !== value) {
+        onChange?.({ ...meta, [field]: value });
+      }
+    },
+    [meta, onChange],
+  );
+
+  const handleRepeatCountChange = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => handleChange('repeatCount', parseInt(e.target.value, 10)),
+    [handleChange],
+  );
+
+  const handleNameChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => handleChange('name', e.target.value),
+    [handleChange],
+  );
+
+  const handleEmailChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => handleChange('email', e.target.value),
+    [handleChange],
+  );
+
+  const handlePhoneNumberChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => handleChange('phoneNumber', e.target.value),
+    [handleChange],
+  );
+
+  const handleCommentChange = useCallback(
+    (e: React.ChangeEvent<HTMLTextAreaElement>) => handleChange('comment', e.target.value),
+    [handleChange],
+  );
+
+  return (
+    <div
+      ref={ref}
+      className="mx-2 p-2 w-60 space-y-2 border-2 border-gray-400 bg-white"
+      style={popperStyles}
+      {...popperAttributes}
+    >
+      <label className="flex flex-row items-baseline space-x-1">
+        반복 횟수:
+        <select
+          value={meta.repeatCount.toString()}
+          onChange={handleRepeatCountChange}
+        >
+          {Array(15).fill('').map((_, idx) => (
+            <option key={idx} value={(idx + 1).toString()}>{idx + 1}</option>
+          ))}
+        </select>
+        주
+      </label>
+      <label className="block space-y-1">
+        <div>단체 이름</div>
+        <input
+          className="block w-full p-1 border border-gray-400 rounded"
+          autoFocus
+          value={meta.name}
+          onChange={handleNameChange}
+        />
+      </label>
+      <label className="block space-y-1">
+        <div>연락 가능한 이메일</div>
+        <input
+          type="email"
+          className="block w-full p-1 border border-gray-400 rounded"
+          value={meta.email}
+          onChange={handleEmailChange}
+        />
+      </label>
+      <label className="block space-y-1">
+        <div>연락 가능한 전화번호</div>
+        <input
+          type="tel"
+          className="block w-full p-1 border border-gray-400 rounded"
+          value={meta.phoneNumber}
+          onChange={handlePhoneNumberChange}
+        />
+      </label>
+      <label className="block space-y-1">
+        <div>사용 목적</div>
+        <textarea
+          className="block w-full p-1 border border-gray-400 rounded"
+          value={meta.comment}
+          onChange={handleCommentChange}
+        />
+      </label>
+    </div>
+  );
+}
+
+const ForwardedMetaPopup = forwardRef(MetaPopup);
+
 const weekdayFormatter = new Intl.DateTimeFormat('ko-KR', { weekday: 'long' });
 
 /**
@@ -244,7 +390,7 @@ const weekdayFormatter = new Intl.DateTimeFormat('ko-KR', { weekday: 'long' });
  * 시간표는 `dateStartAt` 날짜부터 시작해 7일간 그려집니다.
  * */
 export default function Timetable(props: Props) {
-  const { onTimeSelectUpdate, onTimeSelectDone } = props;
+  const { selectedMeta, onTimeSelectUpdate, onTimeSelectDone, onMetaChange } = props;
 
   const timeHeaders = [];
   for (let i = 8; i < 23; i++) {
@@ -278,8 +424,10 @@ export default function Timetable(props: Props) {
         idx={i}
         heading={heading}
         schedules={schedules}
+        selectedMeta={selectedMeta}
         onTimeSelectUpdate={onTimeSelectUpdate}
         onTimeSelectDone={onTimeSelectDone}
+        onMetaChange={onMetaChange}
       />
     );
   }

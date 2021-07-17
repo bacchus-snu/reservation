@@ -37,6 +37,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         [null, {
           "packageLocation": "./",
           "packageDependencies": [
+            ["@popperjs/core", "npm:2.9.2"],
             ["@types/node", "npm:16.3.3"],
             ["@types/react", "npm:17.0.14"],
             ["autoprefixer", "virtual:05af16f6f013f87e90e07f057f0ff5bd3aa545be79e40a04977e5474b9f231d02da46aa5a866c1f73e0619f2991ebf89379152a17812c797778e89d370314f30#npm:10.3.1"],
@@ -46,6 +47,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["postcss", "npm:8.3.5"],
             ["react", "npm:17.0.2"],
             ["react-dom", "virtual:05af16f6f013f87e90e07f057f0ff5bd3aa545be79e40a04977e5474b9f231d02da46aa5a866c1f73e0619f2991ebf89379152a17812c797778e89d370314f30#npm:17.0.2"],
+            ["react-popper", "virtual:05af16f6f013f87e90e07f057f0ff5bd3aa545be79e40a04977e5474b9f231d02da46aa5a866c1f73e0619f2991ebf89379152a17812c797778e89d370314f30#npm:2.2.5"],
             ["tailwindcss", "virtual:05af16f6f013f87e90e07f057f0ff5bd3aa545be79e40a04977e5474b9f231d02da46aa5a866c1f73e0619f2991ebf89379152a17812c797778e89d370314f30#npm:2.2.4"],
             ["typescript", "patch:typescript@npm%3A4.3.5#builtin<compat/typescript>::version=4.3.5&hash=ddfc1b"]
           ],
@@ -352,6 +354,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@npmcli/move-file", "npm:1.1.2"],
             ["mkdirp", "npm:1.0.4"],
             ["rimraf", "npm:3.0.2"]
+          ],
+          "linkType": "HARD",
+        }]
+      ]],
+      ["@popperjs/core", [
+        ["npm:2.9.2", {
+          "packageLocation": "./.yarn/cache/@popperjs-core-npm-2.9.2-b658241f4a-cc4de8b46f.zip/node_modules/@popperjs/core/",
+          "packageDependencies": [
+            ["@popperjs/core", "npm:2.9.2"]
           ],
           "linkType": "HARD",
         }]
@@ -925,6 +936,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./",
           "packageDependencies": [
             ["bacchus-reservation", "workspace:."],
+            ["@popperjs/core", "npm:2.9.2"],
             ["@types/node", "npm:16.3.3"],
             ["@types/react", "npm:17.0.14"],
             ["autoprefixer", "virtual:05af16f6f013f87e90e07f057f0ff5bd3aa545be79e40a04977e5474b9f231d02da46aa5a866c1f73e0619f2991ebf89379152a17812c797778e89d370314f30#npm:10.3.1"],
@@ -934,6 +946,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["postcss", "npm:8.3.5"],
             ["react", "npm:17.0.2"],
             ["react-dom", "virtual:05af16f6f013f87e90e07f057f0ff5bd3aa545be79e40a04977e5474b9f231d02da46aa5a866c1f73e0619f2991ebf89379152a17812c797778e89d370314f30#npm:17.0.2"],
+            ["react-popper", "virtual:05af16f6f013f87e90e07f057f0ff5bd3aa545be79e40a04977e5474b9f231d02da46aa5a866c1f73e0619f2991ebf89379152a17812c797778e89d370314f30#npm:2.2.5"],
             ["tailwindcss", "virtual:05af16f6f013f87e90e07f057f0ff5bd3aa545be79e40a04977e5474b9f231d02da46aa5a866c1f73e0619f2991ebf89379152a17812c797778e89d370314f30#npm:2.2.4"],
             ["typescript", "patch:typescript@npm%3A4.3.5#builtin<compat/typescript>::version=4.3.5&hash=ddfc1b"]
           ],
@@ -4921,6 +4934,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "linkType": "HARD",
         }]
       ]],
+      ["react-fast-compare", [
+        ["npm:3.2.0", {
+          "packageLocation": "./.yarn/cache/react-fast-compare-npm-3.2.0-fbfa6627d9-6fe65c889e.zip/node_modules/react-fast-compare/",
+          "packageDependencies": [
+            ["react-fast-compare", "npm:3.2.0"]
+          ],
+          "linkType": "HARD",
+        }]
+      ]],
       ["react-is", [
         ["npm:16.13.1", {
           "packageLocation": "./.yarn/cache/react-is-npm-16.13.1-a9b9382b4f-11bcf1267a.zip/node_modules/react-is/",
@@ -4933,6 +4955,34 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/react-is-npm-17.0.2-091bbb8db6-3eff23f410.zip/node_modules/react-is/",
           "packageDependencies": [
             ["react-is", "npm:17.0.2"]
+          ],
+          "linkType": "HARD",
+        }]
+      ]],
+      ["react-popper", [
+        ["npm:2.2.5", {
+          "packageLocation": "./.yarn/cache/react-popper-npm-2.2.5-6e86e4bf1e-5cac009001.zip/node_modules/react-popper/",
+          "packageDependencies": [
+            ["react-popper", "npm:2.2.5"]
+          ],
+          "linkType": "SOFT",
+        }],
+        ["virtual:05af16f6f013f87e90e07f057f0ff5bd3aa545be79e40a04977e5474b9f231d02da46aa5a866c1f73e0619f2991ebf89379152a17812c797778e89d370314f30#npm:2.2.5", {
+          "packageLocation": "./.yarn/$$virtual/react-popper-virtual-ba1ccf4fa7/0/cache/react-popper-npm-2.2.5-6e86e4bf1e-5cac009001.zip/node_modules/react-popper/",
+          "packageDependencies": [
+            ["react-popper", "virtual:05af16f6f013f87e90e07f057f0ff5bd3aa545be79e40a04977e5474b9f231d02da46aa5a866c1f73e0619f2991ebf89379152a17812c797778e89d370314f30#npm:2.2.5"],
+            ["@popperjs/core", "npm:2.9.2"],
+            ["@types/popperjs__core", null],
+            ["@types/react", "npm:17.0.14"],
+            ["react", "npm:17.0.2"],
+            ["react-fast-compare", "npm:3.2.0"],
+            ["warning", "npm:4.0.3"]
+          ],
+          "packagePeers": [
+            "@popperjs/core",
+            "@types/popperjs__core",
+            "@types/react",
+            "react"
           ],
           "linkType": "HARD",
         }]
@@ -6202,6 +6252,16 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/vm-browserify-npm-1.1.2-f96404b36f-fc571a62d2.zip/node_modules/vm-browserify/",
           "packageDependencies": [
             ["vm-browserify", "npm:1.1.2"]
+          ],
+          "linkType": "HARD",
+        }]
+      ]],
+      ["warning", [
+        ["npm:4.0.3", {
+          "packageLocation": "./.yarn/cache/warning-npm-4.0.3-291e921d6d-20ef5d29ff.zip/node_modules/warning/",
+          "packageDependencies": [
+            ["warning", "npm:4.0.3"],
+            ["loose-envify", "npm:1.4.0"]
           ],
           "linkType": "HARD",
         }]
