@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/bacchus-snu/reservation/config"
+	"github.com/bacchus-snu/reservation/handler"
+	"github.com/bacchus-snu/reservation/sql"
 	goerrors "github.com/go-errors/errors"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
@@ -17,12 +19,20 @@ func main() {
 		logrus.WithError(err).Fatal("failed to parse configuration")
 	}
 
+	if config.Config.TestMode {
+		logrus.SetLevel(logrus.DebugLevel)
+	}
+
+	if err := sql.Connect(); err != nil {
+		logrus.WithError(err).Fatal("failed to connect to database")
+	}
+
 	// http handler
 	r := mux.NewRouter()
-	// TODO: add handlers here
+	r.HandleFunc(wrap("/api/schedule/add", handler.HandleAddSchedule)).Methods("POST")
 
 	server := &http.Server{
-		Addr:         "localhost:10101",
+		Addr:         config.Config.ListenAddr,
 		Handler:      r,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,

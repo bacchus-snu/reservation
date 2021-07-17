@@ -23,3 +23,18 @@ type Schedule struct {
 	StartTimestamp  int64 `json:"startTimestamp"`
 	EndTimestamp    int64 `json:"endTimestamp"`
 }
+
+type ErrorResp struct {
+	Msg string `json:"msg"`
+}
+
+type AddScheduleReq struct {
+	RoomId         int64  `json:"roomId"`
+	Reservee       string `json:"reservee"`
+	Email          string `json:"email"`
+	PhoneNumber    string `json:"phoneNumber"`
+	Reason         string `json:"reason"`
+	StartTimestamp int64  `json:"startTimestamp"`
+	EndTimestamp   int64  `json:"endTimestamp"`
+	Repeats        int    `json:"repeats"`
+}

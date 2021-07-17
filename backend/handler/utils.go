@@ -1,11 +1,13 @@
 package handler
 
 import (
+	"encoding/json"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/bacchus-snu/reservation/config"
+	"github.com/bacchus-snu/reservation/types"
 	"github.com/go-jose/go-jose/v3/jwt"
 	"github.com/sirupsen/logrus"
 )
@@ -21,6 +23,10 @@ type Payload struct {
 }
 
 func verifyToken(r *http.Request) bool {
+	if config.Config.TestMode {
+		return true
+	}
+
 	h := r.Header.Get("Authorization")
 	if !strings.HasPrefix(h, "Bearer ") {
 		return false
@@ -53,4 +59,16 @@ func verifyToken(r *http.Request) bool {
 	}
 
 	return true
+}
+
+func httpError(w http.ResponseWriter, statusCode int, msg string, errs ...error) {
+	for _, err := range errs {
+		logrus.WithError(err).Error(msg)
+	}
+	errResp := types.ErrorResp{
+		Msg: msg,
+	}
+	w.WriteHeader(statusCode)
+	b, _ := json.Marshal(errResp)
+	w.Write(b)
 }

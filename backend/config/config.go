@@ -17,10 +17,16 @@ type config struct {
 	SQLPort     int    `env:"SQL_PORT" envDefault:"5432"`
 	SQLDBName   string `env:"SQL_DBNAME" envDefault:"reservation"`
 
+	ListenAddr string `env:"LISTEN_ADDR" envDefault:"localhost:10101"`
+
 	JWTPublicKeyPath string `env:"JWT_PUBLIC_KEY_PATH" envDefault:"jwt.pub"`
 	JWTPublicKey     *ecdsa.PublicKey
 	JWTAudience      string `env:"JWT_AUDIENCE" envDefault:"bacchus-snu:reservation"`
 	JWTIssuer        string `env:"JWT_ISSUER" envDefault:"bacchus-snu:id"`
+
+	TestMode bool `env:"TEST_MODE" envDefault:"false"`
+
+	ScheduleRepeatLimit int `env:"SCHEDULE_REPEAT_LIMIT" envDefault:"20"`
 }
 
 var Config *config
