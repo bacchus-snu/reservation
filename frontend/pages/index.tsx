@@ -1,8 +1,9 @@
 import Head from 'next/head';
 import { useCallback, useReducer, useState } from 'react';
 
-import Timetable, { ScheduleType, SelectedScheduleMeta } from '../components/Timetable';
-import type { Schedule } from '../components/Timetable';
+import Timetable from '../components/Timetable';
+import { ScheduleType } from '../components/Timetable/types';
+import type { Schedule, SelectedScheduleMeta } from '../components/Timetable/types';
 
 export default function Home() {
   const [selectInProgress, setSelectInProgress] = useState<boolean>(false);
