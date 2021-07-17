@@ -1,5 +1,7 @@
-type Props = {
+export type Props = {
+  /** 시간표를 그리기 시작할 날짜 */
   dateStartAt: Date;
+  /** 시간표에 그릴 일정 목록 */
   schedules: Schedule[][];
 };
 
@@ -8,9 +10,12 @@ type TimetableColumnProps = {
   schedules: Schedule[];
 };
 
-type Schedule = {
+export type Schedule = {
+  /** 일정 이름 */
   name: string;
+  /** 일정 시작 시각 (0 이상 30 미만) */
   start: number;
+  /** 일정 끝 시각 (0 이상 30 미만) */
   end: number;
 };
 
@@ -55,6 +60,11 @@ function TimetableColumn(props: TimetableColumnProps) {
 
 const weekdayFormatter = new Intl.DateTimeFormat('ko-KR', { weekday: 'long' });
 
+/**
+ * 시간표를 그리는 컴포넌트입니다.
+ *
+ * 시간표는 `dateStartAt` 날짜부터 시작해 7일간 그려집니다.
+ * */
 export default function Timetable(props: Props) {
   const timeHeaders = [];
   for (let i = 8; i < 23; i++) {
@@ -69,6 +79,7 @@ export default function Timetable(props: Props) {
   for (let i = 0; i < 7; i++) {
     const date = new Date(props.dateStartAt);
     date.setDate(date.getDate() + i);
+
     const weekdayStr = weekdayFormatter.format(date);
     const dateStr = date.getFullYear() +
       '-' + (date.getMonth() + 1).toString().padStart(2, '0') +
@@ -79,6 +90,7 @@ export default function Timetable(props: Props) {
         <span className="text-sm">{dateStr}</span>
       </div>
     );
+
     const schedules = props.schedules[i] ?? [];
     columns.push(<TimetableColumn key={i} heading={heading} schedules={schedules} />);
   }
@@ -87,7 +99,6 @@ export default function Timetable(props: Props) {
     <div className="grid grid-cols-timetable grid-rows-timetable grid-flow-col border border-gray-200">
       <div />
       {timeHeaders}
-
       {columns}
     </div>
   );
