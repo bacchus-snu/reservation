@@ -329,9 +329,10 @@ function MetaPopup(props: MetaPopupProps, ref: React.Ref<HTMLDivElement>) {
       style={popperStyles}
       {...popperAttributes}
     >
-      <label className="flex flex-row items-baseline space-x-1">
-        반복 횟수:
+      <label className="flex flex-row items-baseline space-x-1.5">
+        <span>반복 횟수:</span>
         <select
+          className="border"
           value={meta.repeatCount.toString()}
           onChange={handleRepeatCountChange}
         >
