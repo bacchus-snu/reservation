@@ -1,5 +1,5 @@
 import Head from 'next/head';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useReducer, useState } from 'react';
 
 import Timetable, { ScheduleType, SelectedScheduleMeta } from '../components/Timetable';
 import type { Schedule } from '../components/Timetable';
@@ -8,6 +8,24 @@ export default function Home() {
   const [selectInProgress, setSelectInProgress] = useState<boolean>(false);
   const [selection, setSelection] = useState<{ idx: number, from: number, to: number }>();
   const [selectionMeta, setSelectionMeta] = useState<SelectedScheduleMeta>();
+  const [schedules, dispatch] = useReducer(
+    (schedules: Schedule[][], action: { type: 'add'; idx: number; schedule: Schedule }) => {
+      switch (action.type) {
+        case 'add': {
+          const ret = [...schedules];
+          ret[action.idx] = [
+            ...schedules[action.idx],
+            action.schedule,
+          ];
+          return ret;
+        }
+        default:
+          return schedules;
+      }
+    },
+    [],
+    () => Array(7).fill('').map(() => []),
+  );
 
   const handleTimeSelectUpdate = useCallback(
     data => {
@@ -27,17 +45,40 @@ export default function Home() {
         phoneNumber: '',
         comment: '',
       });
-      if (data.cancelled) {
-        setSelection(undefined);
-      } else {
-        setSelection(data);
-      }
+      setSelection(data);
     },
     [],
   );
 
-  const schedules: Schedule[][] = Array(7).fill('').map(() => []);
-  schedules[0].push({ name: 'Foo', start: 0, end: 3, type: ScheduleType.Past });
+  const handleTimeSelectCancel = useCallback(
+    () => {
+      setSelectInProgress(false);
+      setSelectionMeta(undefined);
+      setSelection(undefined);
+    },
+    [],
+  );
+
+  const handleConfirm = useCallback(
+    () => {
+      if (selection == null || selectionMeta == null) return;
+
+      console.log(selection, selectionMeta);
+      const idx = selection.idx;
+      let start = selection.from, end = selection.to;
+      if (start > end) {
+        const t = start;
+        start = end;
+        end = t;
+      }
+      end += 1;
+
+      dispatch({ type: 'add', idx, schedule: { name: selectionMeta.name, start, end, type: ScheduleType.Past } });
+    },
+    [selection, selectionMeta],
+  );
+
+  const schedulesWithSel = [...schedules];
   if (selection != null) {
     const type = selectInProgress ? ScheduleType.Selecting : ScheduleType.Selected;
     const idx = selection.idx;
@@ -49,7 +90,7 @@ export default function Home() {
     }
     end += 1;
 
-    schedules[idx].push({ name: '선택중', start, end, type });
+    schedulesWithSel[idx] = [...schedules[idx], { name: '선택중', start, end, type }];
   }
 
   return (
@@ -62,11 +103,13 @@ export default function Home() {
       <main className="py-20">
         <Timetable
           dateStartAt={new Date('2021-07-12')}
-          schedules={schedules}
+          schedules={schedulesWithSel}
           selectedMeta={selectionMeta}
           onTimeSelectUpdate={handleTimeSelectUpdate}
           onTimeSelectDone={handleTimeSelectDone}
+          onTimeSelectCancel={handleTimeSelectCancel}
           onMetaChange={setSelectionMeta}
+          onConfirm={handleConfirm}
         />
       </main>
     </div>

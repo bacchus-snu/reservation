@@ -12,14 +12,14 @@ export type Props = {
   selectedMeta?: SelectedScheduleMeta;
   /** 일정 선택이 업데이트된 경우 발생하는 이벤트 */
   onTimeSelectUpdate?(data: { idx: number; from: number; to: number }): void;
-  /**
-   * 일정 선택이 완료된 경우 발생하는 이벤트
-   *
-   * 드래그가 범위를 벗어난 경우 선택이 취소되며 그 경우 `data.cancelled`가 `true`입니다.
-   * */
-  onTimeSelectDone?(data: { idx: number; from: number; to: number } | { idx: number; cancelled: true }): void;
+  /** 일정 선택이 완료된 경우 발생하는 이벤트 */
+  onTimeSelectDone?(data: { idx: number; from: number; to: number }): void;
+  /** 일정 선택이 취소된 경우 발생하는 이벤트 */
+  onTimeSelectCancel?(data: { idx: number }): void;
   /** 일정 정보가 업데이트된 경우 발생하는 이벤트 */
   onMetaChange?(meta: SelectedScheduleMeta): void;
+  /** 예약하기를 누른 경우 발생하는 이벤트 */
+  onConfirm?(): void;
 };
 
 type TimetableColumnProps = {
@@ -28,8 +28,10 @@ type TimetableColumnProps = {
   schedules: Schedule[];
   selectedMeta?: SelectedScheduleMeta;
   onTimeSelectUpdate?(data: { idx: number; from: number; to: number }): void;
-  onTimeSelectDone?(data: { idx: number; from: number; to: number } | { idx: number; cancelled: true }): void;
+  onTimeSelectDone?(data: { idx: number; from: number; to: number }): void;
+  onTimeSelectCancel?(data: { idx: number }): void;
   onMetaChange?(meta: SelectedScheduleMeta): void;
+  onConfirm?(): void;
 };
 
 export type Schedule = {
@@ -78,7 +80,13 @@ type TimetableCellProps = {
 };
 
 function TimetableCell(props: TimetableCellProps) {
-  const { idx, columnIdx, onDragStart: handleDragStart, onDragUpdate: handleDragUpdate, onDragEnd: handleDragEnd } = props;
+  const {
+    idx,
+    columnIdx,
+    onDragStart: handleDragStart,
+    onDragUpdate: handleDragUpdate,
+    onDragEnd: handleDragEnd,
+  } = props;
   const dotted = idx % 2 === 1;
 
   const handleMouseDown = useCallback(
@@ -127,7 +135,15 @@ function TimetableCell(props: TimetableCellProps) {
 }
 
 function TimetableColumn(props: TimetableColumnProps) {
-  const { idx: columnIdx, selectedMeta, onTimeSelectUpdate, onTimeSelectDone, onMetaChange } = props;
+  const {
+    idx: columnIdx,
+    selectedMeta,
+    onTimeSelectUpdate,
+    onTimeSelectDone,
+    onTimeSelectCancel,
+    onMetaChange,
+    onConfirm,
+  } = props;
 
   const schedules = [...props.schedules];
   schedules.sort((a, b) => a.start - b.start);
@@ -178,6 +194,13 @@ function TimetableColumn(props: TimetableColumnProps) {
     { placement: 'right-start' },
   );
 
+  const handleCancel = useCallback(
+    () => {
+      onTimeSelectCancel?.({ idx: columnIdx });
+    },
+    [columnIdx, onTimeSelectCancel],
+  );
+
   useEffect(
     () => {
       if (dragging && dragFrom != null && dragTo != null) {
@@ -194,7 +217,7 @@ function TimetableColumn(props: TimetableColumnProps) {
           setDragFrom(undefined);
           setDragTo(undefined);
           setDragging(false);
-          onTimeSelectDone?.({ idx: columnIdx, cancelled: true });
+          onTimeSelectCancel?.({ idx: columnIdx });
         }
       };
       window.addEventListener('mouseup', handleGlobalMouseUp);
@@ -202,7 +225,7 @@ function TimetableColumn(props: TimetableColumnProps) {
         window.removeEventListener('mouseup', handleGlobalMouseUp);
       };
     },
-    [columnIdx, dragging, onTimeSelectDone],
+    [columnIdx, dragging, onTimeSelectCancel],
   );
 
   const column = [];
@@ -242,6 +265,8 @@ function TimetableColumn(props: TimetableColumnProps) {
             ref={setPopperElement}
             meta={selectedMeta}
             onChange={onMetaChange}
+            onConfirm={onConfirm}
+            onCancel={handleCancel}
             popperStyles={popperStyles.popper}
             popperAttributes={popperAttributes.popper}
           />
@@ -281,12 +306,14 @@ function TimetableColumn(props: TimetableColumnProps) {
 type MetaPopupProps = {
   meta: SelectedScheduleMeta;
   onChange?(meta: SelectedScheduleMeta): void;
+  onConfirm?(): void;
+  onCancel?(): void;
   popperStyles: React.CSSProperties,
   popperAttributes: { [key: string]: string } | undefined,
 };
 
 function MetaPopup(props: MetaPopupProps, ref: React.Ref<HTMLDivElement>) {
-  const { meta, onChange, popperStyles, popperAttributes } = props;
+  const { meta, onChange, onConfirm, onCancel, popperStyles, popperAttributes } = props;
 
   const handleChange = useCallback(
     <F extends keyof MetaPopupProps['meta']>(field: F, value: MetaPopupProps['meta'][F]) => {
@@ -325,7 +352,7 @@ function MetaPopup(props: MetaPopupProps, ref: React.Ref<HTMLDivElement>) {
   return (
     <div
       ref={ref}
-      className="mx-2 p-2 w-60 space-y-2 border-2 border-gray-400 bg-white"
+      className="mx-2 p-2 w-60 flex flex-col space-y-2 border-2 border-gray-400 bg-white"
       style={popperStyles}
       {...popperAttributes}
     >
@@ -377,6 +404,21 @@ function MetaPopup(props: MetaPopupProps, ref: React.Ref<HTMLDivElement>) {
           onChange={handleCommentChange}
         />
       </label>
+      <hr />
+      <div className="flex flex-row justify-end space-x-2">
+        <button
+          className="px-2 py-0.5 border border-gray-600 rounded-md"
+          onClick={onCancel}
+        >
+          취소
+        </button>
+        <button
+          className="px-2 py-0.5 border border-blue-600 rounded-md bg-blue-500 font-bold text-white"
+          onClick={onConfirm}
+        >
+          예약하기
+        </button>
+      </div>
     </div>
   );
 }
@@ -391,7 +433,14 @@ const weekdayFormatter = new Intl.DateTimeFormat('ko-KR', { weekday: 'long' });
  * 시간표는 `dateStartAt` 날짜부터 시작해 7일간 그려집니다.
  * */
 export default function Timetable(props: Props) {
-  const { selectedMeta, onTimeSelectUpdate, onTimeSelectDone, onMetaChange } = props;
+  const {
+    selectedMeta,
+    onTimeSelectUpdate,
+    onTimeSelectDone,
+    onTimeSelectCancel,
+    onMetaChange,
+    onConfirm,
+  } = props;
 
   const timeHeaders = [];
   for (let i = 8; i < 23; i++) {
@@ -428,7 +477,9 @@ export default function Timetable(props: Props) {
         selectedMeta={selectedMeta}
         onTimeSelectUpdate={onTimeSelectUpdate}
         onTimeSelectDone={onTimeSelectDone}
+        onTimeSelectCancel={onTimeSelectCancel}
         onMetaChange={onMetaChange}
+        onConfirm={onConfirm}
       />
     );
   }
