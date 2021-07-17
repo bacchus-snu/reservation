@@ -5,6 +5,16 @@ export type Props = {
   dateStartAt: Date;
   /** 시간표에 그릴 일정 목록 */
   schedules: Schedule[][];
+  /** 현재 선택된 일정 */
+  selected?: Schedule;
+  /** 일정 선택이 업데이트된 경우 발생하는 이벤트 */
+  onTimeSelectUpdate?(data: { idx: number; from: number; to: number }): void;
+  /**
+   * 일정 선택이 완료된 경우 발생하는 이벤트
+   *
+   * 드래그가 범위를 벗어난 경우 선택이 취소되며 그 경우 `data.cancelled`가 `true`입니다.
+   * */
+  onTimeSelectDone?(data: { idx: number; from: number; to: number } | { idx: number; cancelled: true }): void;
 };
 
 type TimetableColumnProps = {
@@ -22,17 +32,33 @@ export type Schedule = {
   start: number;
   /** 일정 끝 시각 (0 이상 30 미만) */
   end: number;
+  /** 일정 종류 */
+  type: ScheduleType;
 };
+
+export enum ScheduleType {
+  /** 지나감 */
+  Past,
+  /** 확인 대기중 */
+  Unverified,
+  /** Upcoming */
+  Upcoming,
+  /** 선택 진행 중 */
+  Selecting,
+  /** 선택됨 */
+  Selected,
+}
 
 type TimetableCellProps = {
   idx: number;
+  columnIdx: number;
   onDragStart?(idx: number): void;
   onDragUpdate?(idx: number): void;
   onDragEnd?(idx: number): boolean;
 };
 
 function TimetableCell(props: TimetableCellProps) {
-  const { idx, onDragStart: handleDragStart, onDragUpdate: handleDragUpdate, onDragEnd: handleDragEnd } = props;
+  const { idx, columnIdx, onDragStart: handleDragStart, onDragUpdate: handleDragUpdate, onDragEnd: handleDragEnd } = props;
   const dotted = idx % 2 === 1;
 
   const handleMouseDown = useCallback(
@@ -72,6 +98,7 @@ function TimetableCell(props: TimetableCellProps) {
   return (
     <div
       className={`border-t border-gray-200 ${dotted ? 'border-dotted' : ''}`}
+      style={{ gridColumn: ((columnIdx + 1) * 2 + 1).toString(), gridRow: (idx + 2).toString() }}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
@@ -154,24 +181,43 @@ function TimetableColumn(props: TimetableColumnProps) {
   let i = 0;
   let scheduleIdx = 0;
   while (i < 30) {
+    let createCell = true;
     if (schedules.length > scheduleIdx && schedules[scheduleIdx].start === i) {
       const schedule = schedules[scheduleIdx];
       const span = schedule.end - schedule.start;
+      createCell = schedule.type === ScheduleType.Selecting || schedule.type === ScheduleType.Selected;
+
+      let bgColor = 'bg-gray-100';
+      switch (schedule.type) {
+        case ScheduleType.Selecting:
+          bgColor = 'bg-blue-200';
+          break;
+        case ScheduleType.Selected:
+          bgColor = 'bg-pink-200';
+          break;
+      }
       column.push(
         <div
           key={`schedule-${i}`}
-          className="border-2 border-gray-300 bg-gray-100 text-center"
-          style={{ gridRow: `span ${span}` }}
+          className={`border-2 border-gray-300 ${bgColor} text-center z-10 pointer-events-none`}
+          style={{ gridColumn: ((columnIdx + 1) * 2 + 1).toString(), gridRow: `${i + 2} / span ${span}` }}
         >
           {schedule.name}
         </div>
       );
-      i += span;
-    } else {
+      scheduleIdx += 1;
+
+      if (!createCell) {
+        i += span;
+      }
+    }
+
+    if (createCell) {
       column.push(
         <TimetableCell
           key={i}
           idx={i}
+          columnIdx={columnIdx}
           onDragStart={handleDragStart}
           onDragUpdate={handleDragUpdate}
           onDragEnd={handleDragEnd}
@@ -198,6 +244,8 @@ const weekdayFormatter = new Intl.DateTimeFormat('ko-KR', { weekday: 'long' });
  * 시간표는 `dateStartAt` 날짜부터 시작해 7일간 그려집니다.
  * */
 export default function Timetable(props: Props) {
+  const { onTimeSelectUpdate, onTimeSelectDone } = props;
+
   const timeHeaders = [];
   for (let i = 8; i < 23; i++) {
     const hour = (i % 12) || 12;
@@ -206,24 +254,6 @@ export default function Timetable(props: Props) {
       <div key={i} className="px-2 row-span-2 text-sm text-right">{hour}{isPM ? 'PM' : 'AM'}</div>
     );
   }
-
-  const handleUpdate = useCallback(
-    data => {
-      console.log(`update to column ${data.idx}: ${data.from}..=${data.to}`);
-    },
-    [],
-  );
-
-  const handleDone = useCallback(
-    data => {
-      if (data.cancelled) {
-        console.log('selection cancelled');
-      } else {
-        console.log(`selected column ${data.idx}: ${data.from}..=${data.to}`);
-      }
-    },
-    [],
-  );
 
   const columns = [];
   for (let i = 0; i < 7; i++) {
@@ -248,14 +278,14 @@ export default function Timetable(props: Props) {
         idx={i}
         heading={heading}
         schedules={schedules}
-        onTimeSelectUpdate={handleUpdate}
-        onTimeSelectDone={handleDone}
+        onTimeSelectUpdate={onTimeSelectUpdate}
+        onTimeSelectDone={onTimeSelectDone}
       />
     );
   }
 
   return (
-    <div className="grid grid-cols-timetable grid-rows-timetable grid-flow-col border border-gray-200">
+    <div className="grid grid-cols-timetable grid-rows-timetable grid-flow-col-dense border border-gray-200">
       <div />
       {timeHeaders}
       {columns}
