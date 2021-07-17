@@ -2,6 +2,12 @@ import Head from 'next/head'
 import Timetable from '../components/Timetable'
 
 export default function Home() {
+  const schedules = [
+    [
+      { name: 'Foo', start: 0, end: 3 },
+    ],
+  ];
+
   return (
     <div className="container mx-auto">
       <Head>
@@ -10,7 +16,7 @@ export default function Home() {
       </Head>
 
       <main className="py-20">
-        <Timetable />
+        <Timetable dateStartAt={new Date('2021-07-12')} schedules={schedules} />
       </main>
     </div>
   )
