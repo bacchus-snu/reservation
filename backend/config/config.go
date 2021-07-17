@@ -13,7 +13,8 @@ import (
 type config struct {
 	SQLUser     string `env:"SQL_USERNAME" envDefault:""`
 	SQLPassword string `env:"SQL_PASSWORD" envDefault:""`
-	SQLAddress  string `env:"SQL_ADDR" envDefault:"127.0.0.1:5432"`
+	SQLHost     string `env:"SQL_HOST" envDefault:"127.0.0.1"`
+	SQLPort     int    `env:"SQL_PORT" envDefault:"5432"`
 	SQLDBName   string `env:"SQL_DBNAME" envDefault:"reservation"`
 
 	JWTPublicKeyPath string `env:"JWT_PUBLIC_KEY_PATH" envDefault:"jwt.pub"`
