@@ -17,6 +17,15 @@ type Props = {
   onConfirm?(): void;
 };
 
+function convertDateToIndex(date: Date): number {
+  const hour = date.getHours();
+  const minute = date.getMinutes();
+
+  const hourIdx = hour - 8;
+  const minuteIdx = (minute - minute % 30) / 30;
+  return hourIdx * 2 + minuteIdx;
+}
+
 export default function TimetableColumn(props: Props) {
   const {
     idx: columnIdx,
@@ -29,7 +38,7 @@ export default function TimetableColumn(props: Props) {
   } = props;
 
   const schedules = [...props.schedules];
-  schedules.sort((a, b) => a.start - b.start);
+  schedules.sort((a, b) => Number(a.start) - Number(b.start));
 
   const [dragging, setDragging] = useState<boolean>(false);
   const [dragFrom, setDragFrom] = useState<number>();
@@ -122,10 +131,16 @@ export default function TimetableColumn(props: Props) {
   let i = 0;
   let scheduleIdx = 0;
   while (i < 30) {
+    let schedule: Schedule | undefined = schedules[scheduleIdx];
+    while (schedule != null && convertDateToIndex(schedule.start) < i) {
+      scheduleIdx += 1;
+      schedule = schedules[scheduleIdx];
+    }
+
     let createCell = true;
-    if (schedules.length > scheduleIdx && schedules[scheduleIdx].start === i) {
-      const schedule = schedules[scheduleIdx];
-      const span = schedule.end - schedule.start;
+    if (schedule != null && convertDateToIndex(schedule.start) === i) {
+      const endIdx = convertDateToIndex(schedule.end);
+      const span = endIdx - i;
       const ref = schedule.type === ScheduleType.Selected ? setSelectionElement : undefined;
       createCell = schedule.type === ScheduleType.Selecting || schedule.type === ScheduleType.Selected;
 

@@ -2,9 +2,9 @@ export type Schedule = {
   /** 일정 이름 */
   name: string;
   /** 일정 시작 시각 (0 이상 30 미만) */
-  start: number;
+  start: Date;
   /** 일정 끝 시각 (0 이상 30 미만) */
-  end: number;
+  end: Date;
   /** 일정 종류 */
   type: ScheduleType;
 };
