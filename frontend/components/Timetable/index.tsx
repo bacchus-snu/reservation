@@ -1,3 +1,5 @@
+import { useCallback, useMemo } from 'react';
+
 import TimetableColumn from './Column';
 import { Schedule, SelectedScheduleMeta } from './types';
 
@@ -7,17 +9,17 @@ export type Props = {
   /** 오늘 날짜 */
   today?: Date;
   /** 시간표에 그릴 일정 목록 */
-  schedules: Schedule[][];
+  schedules: Schedule[];
   /** 현재 선택된 일정 */
   selected?: Schedule;
   /** 선택된 일정의 정보 */
   selectedMeta?: SelectedScheduleMeta;
   /** 일정 선택이 업데이트된 경우 발생하는 이벤트 */
-  onTimeSelectUpdate?(data: { idx: number; from: number; to: number }): void;
+  onTimeSelectUpdate?(data: { start: Date; end: Date }): void;
   /** 일정 선택이 완료된 경우 발생하는 이벤트 */
-  onTimeSelectDone?(data: { idx: number; from: number; to: number }): void;
+  onTimeSelectDone?(data: { start: Date; end: Date }): void;
   /** 일정 선택이 취소된 경우 발생하는 이벤트 */
-  onTimeSelectCancel?(data: { idx: number }): void;
+  onTimeSelectCancel?(): void;
   /** 일정 정보가 업데이트된 경우 발생하는 이벤트 */
   onMetaChange?(meta: SelectedScheduleMeta): void;
   /** 예약하기를 누른 경우 발생하는 이벤트 */
@@ -25,6 +27,32 @@ export type Props = {
 };
 
 const weekdayFormatter = new Intl.DateTimeFormat('ko-KR', { weekday: 'long' });
+
+function convertSelection(dateStartAt: Date, data: { idx: number; from: number; to: number }) {
+  const baseDate = new Date(dateStartAt);
+  baseDate.setDate(baseDate.getDate() + data.idx);
+  baseDate.setSeconds(0, 0);
+
+  let { from: start, to: end } = data;
+  if (start > end) {
+    const t = start;
+    start = end;
+    end = t;
+  }
+  end += 1;
+
+  const startMinute = start % 2;
+  const startHour = (start - startMinute) / 2;
+  const endMinute = end % 2;
+  const endHour = (end - endMinute) / 2;
+
+  const startDate = new Date(baseDate);
+  startDate.setHours(startHour + 8, startMinute * 30);
+  const endDate = new Date(baseDate);
+  endDate.setHours(endHour + 8, endMinute * 30);
+
+  return { start: startDate, end: endDate };
+}
 
 /**
  * 시간표를 그리는 컴포넌트입니다.
@@ -35,6 +63,7 @@ export default function Timetable(props: Props) {
   const {
     dateStartAt,
     today,
+    schedules,
     selectedMeta,
     onTimeSelectUpdate,
     onTimeSelectDone,
@@ -42,6 +71,31 @@ export default function Timetable(props: Props) {
     onMetaChange,
     onConfirm,
   } = props;
+
+  const sortedSchedules = useMemo(
+    () => {
+      const ret = [...schedules];
+      ret.sort((a, b) => Number(a.start) - Number(b.start));
+      return ret;
+    },
+    [schedules],
+  );
+
+  const handleTimeSelectUpdate = useCallback(
+    data => {
+      if (dateStartAt == null) return;
+      onTimeSelectUpdate?.(convertSelection(dateStartAt, data));
+    },
+    [dateStartAt, onTimeSelectUpdate],
+  );
+
+  const handleTimeSelectDone = useCallback(
+    data => {
+      if (dateStartAt == null) return;
+      onTimeSelectDone?.(convertSelection(dateStartAt, data));
+    },
+    [dateStartAt, onTimeSelectDone],
+  );
 
   const timeHeaders = [];
   for (let i = 8; i < 23; i++) {
@@ -56,6 +110,7 @@ export default function Timetable(props: Props) {
   for (let i = 0; i < 7; i++) {
     let headingInner = null;
     let isToday = false;
+    let schedules: Schedule[] = [];
 
     if (dateStartAt != null) {
       const date = new Date(dateStartAt);
@@ -77,6 +132,32 @@ export default function Timetable(props: Props) {
           <span className="text-sm">{dateStr}</span>
         </>
       );
+
+      const scheduleStartIdx = sortedSchedules.findIndex(
+        schedule => {
+          const start = schedule.start;
+          return start.getFullYear() === date.getFullYear() &&
+            start.getMonth() === date.getMonth() &&
+            start.getDate() === date.getDate();
+        },
+      );
+      if (scheduleStartIdx !== -1) {
+        const scheduleRangeLen = sortedSchedules.slice(scheduleStartIdx)
+          .findIndex(
+            schedule => {
+              const start = schedule.start;
+              return !(
+                start.getFullYear() === date.getFullYear() &&
+                start.getMonth() === date.getMonth() &&
+                start.getDate() === date.getDate()
+              );
+            },
+          );
+        const scheduleEndIdx = scheduleRangeLen === -1
+          ? sortedSchedules.length
+          : scheduleStartIdx + scheduleRangeLen;
+        schedules = sortedSchedules.slice(scheduleStartIdx, scheduleEndIdx);
+      }
     }
 
     const heading = (
@@ -85,7 +166,6 @@ export default function Timetable(props: Props) {
       </div>
     );
 
-    const schedules = props.schedules[i] ?? [];
     columns.push(
       <TimetableColumn
         key={i}
@@ -93,8 +173,8 @@ export default function Timetable(props: Props) {
         heading={heading}
         schedules={schedules}
         selectedMeta={selectedMeta}
-        onTimeSelectUpdate={onTimeSelectUpdate}
-        onTimeSelectDone={onTimeSelectDone}
+        onTimeSelectUpdate={handleTimeSelectUpdate}
+        onTimeSelectDone={handleTimeSelectDone}
         onTimeSelectCancel={onTimeSelectCancel}
         onMetaChange={onMetaChange}
         onConfirm={onConfirm}

@@ -15,25 +15,19 @@ function getStartOfWeek(now: Date): Date {
 
 export default function Home() {
   const [selectInProgress, setSelectInProgress] = useState<boolean>(false);
-  const [selection, setSelection] = useState<{ idx: number, from: number, to: number }>();
+  const [selection, setSelection] = useState<{ start: Date, end: Date }>();
   const [selectionMeta, setSelectionMeta] = useState<SelectedScheduleMeta>();
   const [schedules, dispatchSchedules] = useReducer(
-    (schedules: Schedule[][], action: { type: 'add'; idx: number; schedule: Schedule }) => {
+    (schedules: Schedule[], action: { type: 'add'; schedule: Schedule }) => {
       switch (action.type) {
         case 'add': {
-          const ret = [...schedules];
-          ret[action.idx] = [
-            ...schedules[action.idx],
-            action.schedule,
-          ];
-          return ret;
+          return [...schedules, action.schedule];
         }
         default:
           return schedules;
       }
     },
     [],
-    () => Array(7).fill('').map(() => []),
   );
   const [dateStartAt, dispatchDate] = useReducer(
     (date: Date | undefined, action: { type: 'reset' } | { type: 'next' } | { type: 'prev' }) => {
@@ -108,17 +102,8 @@ export default function Home() {
     () => {
       if (selection == null || selectionMeta == null) return;
 
-      console.log(selection, selectionMeta);
-      const idx = selection.idx;
-      let start = selection.from, end = selection.to;
-      if (start > end) {
-        const t = start;
-        start = end;
-        end = t;
-      }
-      end += 1;
-
-      dispatchSchedules({ type: 'add', idx, schedule: { name: selectionMeta.name, start, end, type: ScheduleType.Past } });
+      const { start, end } = selection;
+      dispatchSchedules({ type: 'add', schedule: { name: selectionMeta.name, start, end, type: ScheduleType.Past } });
     },
     [selection, selectionMeta],
   );
@@ -129,16 +114,8 @@ export default function Home() {
   const schedulesWithSel = [...schedules];
   if (selection != null) {
     const type = selectInProgress ? ScheduleType.Selecting : ScheduleType.Selected;
-    const idx = selection.idx;
-    let start = selection.from, end = selection.to;
-    if (start > end) {
-      const t = start;
-      start = end;
-      end = t;
-    }
-    end += 1;
-
-    schedulesWithSel[idx] = [...schedules[idx], { name: '선택중', start, end, type }];
+    const { start, end } = selection;
+    schedulesWithSel.push({ name: '선택중', start, end, type });
   }
 
   return (
