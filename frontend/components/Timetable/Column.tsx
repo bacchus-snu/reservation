@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { usePopper } from 'react-popper';
 
 import TimetableCell from './Cell';
@@ -26,9 +26,42 @@ function convertDateToIndex(date: Date): number {
   return hourIdx * 2 + minuteIdx;
 }
 
+function checkValid(sortedSchedules: Schedule[], from: number, to: number): boolean {
+  const indices = sortedSchedules
+    .filter(schedule => schedule.type !== ScheduleType.Selecting)
+    .flatMap(
+      schedule => [
+        { type: 'start', idx: convertDateToIndex(schedule.start) },
+        { type: 'end', idx: convertDateToIndex(schedule.end) },
+      ]
+    );
+  // (from, +Infinity) 중에서 첫 번째 인덱스
+  const firstIndex = indices.find(index => index.idx > from);
+
+  // 없으면 겹치는 일정이 없음
+  if (firstIndex == null) {
+    return true;
+  }
+  // 그게 끝점이면 from이 일정에 겹친 상황
+  if (firstIndex.type === 'end') {
+    return false;
+  }
+  // 찾은 인덱스가 [from, to) 사이에 있는 경우
+  // schedule         *------O
+  // range    from *--O to     <== OK
+  // schedule         *------O
+  // range    from *-----O to  <== NG
+  if (firstIndex.idx < to) {
+    return false;
+  }
+  // 아니면 가능함
+  return true;
+}
+
 export default function TimetableColumn(props: Props) {
   const {
     idx: columnIdx,
+    schedules,
     selectedMeta,
     onTimeSelectUpdate,
     onTimeSelectDone,
@@ -37,8 +70,14 @@ export default function TimetableColumn(props: Props) {
     onConfirm,
   } = props;
 
-  const schedules = [...props.schedules];
-  schedules.sort((a, b) => Number(a.start) - Number(b.start));
+  const sortedSchedules = useMemo(
+    () => {
+      const ret = [...schedules];
+      ret.sort((a, b) => Number(a.start) - Number(b.start));
+      return ret;
+    },
+    [schedules],
+  );
 
   const [dragging, setDragging] = useState<boolean>(false);
   const [dragFrom, setDragFrom] = useState<number>();
@@ -65,8 +104,20 @@ export default function TimetableColumn(props: Props) {
   const handleDragEnd = useCallback(
     (idx: number) => {
       if (dragging) {
-        if (onTimeSelectDone != null && dragFrom != null) {
-          onTimeSelectDone({ idx: columnIdx, from: dragFrom, to: idx });
+        if (dragFrom != null) {
+          let from = dragFrom;
+          let to = idx;
+          if (from > to) {
+            const t = from;
+            from = to;
+            to = t;
+          }
+
+          if (checkValid(sortedSchedules, from, to)) {
+            onTimeSelectDone?.({ idx: columnIdx, from, to });
+          } else {
+            onTimeSelectCancel?.({ idx: columnIdx });
+          }
         }
         setDragFrom(undefined);
         setDragTo(undefined);
@@ -75,7 +126,7 @@ export default function TimetableColumn(props: Props) {
       }
       return false;
     },
-    [dragging, dragFrom, columnIdx, onTimeSelectDone],
+    [dragging, dragFrom, columnIdx, sortedSchedules, onTimeSelectDone, onTimeSelectCancel],
   );
 
   const [selectionElement, setSelectionElement] = useState<HTMLDivElement | null>(null);
@@ -131,10 +182,10 @@ export default function TimetableColumn(props: Props) {
   let i = 0;
   let scheduleIdx = 0;
   while (i < 30) {
-    let schedule: Schedule | undefined = schedules[scheduleIdx];
+    let schedule: Schedule | undefined = sortedSchedules[scheduleIdx];
     while (schedule != null && convertDateToIndex(schedule.start) < i) {
       scheduleIdx += 1;
-      schedule = schedules[scheduleIdx];
+      schedule = sortedSchedules[scheduleIdx];
     }
 
     let createCell = true;
