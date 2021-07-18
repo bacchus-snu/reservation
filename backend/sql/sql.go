@@ -84,8 +84,65 @@ func WithTx(ctx context.Context, f func(*Tx) error) (retErr error) {
 	return
 }
 
+func (tx *Tx) GetAllCategory() ([]*types.Category, error) {
+	query := "select id, name, description from categories"
+	rows, err := tx.tx.Query(query)
+	if err != nil {
+		return nil, err
+	}
+
+	var categories []*types.Category
+	for rows.Next() {
+		var (
+			id          int64
+			name        string
+			description string
+		)
+		if err := rows.Scan(&id, &name, &description); err != nil {
+			if err := rows.Close(); err != nil {
+				return nil, err
+			}
+			return nil, err
+		}
+		category := &types.Category{
+			Id:          id,
+			Name:        name,
+			Description: description,
+		}
+		categories = append(categories, category)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+
+	return categories, nil
+}
+
+func (tx *Tx) AddCategory(category *types.Category) error {
+	if category == nil {
+		return errors.New("category is nil")
+	}
+	query := "insert into categories (name, description) values ($1, $2) returning id"
+	row := tx.tx.QueryRow(query, category.Name, category.Description)
+	var id int64
+	if err := row.Scan(&id); err != nil {
+		return err
+	}
+	category.Id = id
+	return nil
+}
+
+func (tx *Tx) DeleteCategory(categoryId int64) error {
+	query := "delete from categories where id = $1"
+	_, err := tx.tx.Exec(query, categoryId)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (tx *Tx) GetAllRoom() ([]*types.Room, error) {
-	query := "select id, name, seats, category, description from rooms"
+	query := "select id, name, seats, category_id from rooms"
 	rows, err := tx.tx.Query(query)
 	if err != nil {
 		return nil, err
@@ -97,21 +154,19 @@ func (tx *Tx) GetAllRoom() ([]*types.Room, error) {
 			id          int64
 			name        string
 			seats       int
-			category    string
-			description string
+			category_id int64
 		)
-		if err := rows.Scan(&id, &name, &seats, &category, &description); err != nil {
+		if err := rows.Scan(&id, &name, &seats, &category_id); err != nil {
 			if err := rows.Close(); err != nil {
 				return nil, err
 			}
 			return nil, err
 		}
 		room := &types.Room{
-			Id:          id,
-			Name:        name,
-			Seats:       seats,
-			Category:    category,
-			Description: description,
+			Id:         id,
+			Name:       name,
+			Seats:      seats,
+			CategoryId: category_id,
 		}
 		rooms = append(rooms, room)
 	}
@@ -126,8 +181,8 @@ func (tx *Tx) AddRoom(room *types.Room) error {
 	if room == nil {
 		return errors.New("room is nil")
 	}
-	query := "insert into rooms (name, seats, category, description) values ($1, $2, $3, $4) returning id"
-	row := tx.tx.QueryRow(query, room.Name, room.Seats, room.Category, room.Description)
+	query := "insert into rooms (name, seats, category_id) values ($1, $2, $3) returning id"
+	row := tx.tx.QueryRow(query, room.Name, room.Seats, room.CategoryId)
 	var id int64
 	if err := row.Scan(&id); err != nil {
 		return err
