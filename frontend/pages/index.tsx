@@ -1,5 +1,5 @@
 import Head from 'next/head';
-import { useCallback, useReducer, useState } from 'react';
+import { useCallback, useEffect, useReducer, useState } from 'react';
 
 import Timetable from '../components/Timetable';
 import { ScheduleType } from '../components/Timetable/types';
@@ -36,23 +36,41 @@ export default function Home() {
     () => Array(7).fill('').map(() => []),
   );
   const [dateStartAt, dispatchDate] = useReducer(
-    (date: Date, action: { type: 'next' } | { type: 'prev' }) => {
-      const ret = new Date(date);
+    (date: Date | undefined, action: { type: 'reset' } | { type: 'next' } | { type: 'prev' }) => {
       switch (action.type) {
-        case 'next':
+        case 'reset':
+          return getStartOfWeek(new Date());
+        case 'next': {
+          if (date == null) {
+            return date;
+          }
+          const ret = new Date(date);
           ret.setDate(ret.getDate() + 7);
           return ret;
-        case 'prev':
+        }
+        case 'prev': {
+          if (date == null) {
+            return date;
+          }
+          const ret = new Date(date);
           ret.setDate(ret.getDate() - 7);
           return ret;
+        }
         default:
           return date;
       }
     },
-    new Date(),
-    getStartOfWeek,
+    undefined,
   );
-  const [today, setToday] = useState(() => new Date());
+  const [today, setToday] = useState<Date>();
+
+  useEffect(
+    () => {
+      setToday(new Date());
+      dispatchDate({ type: 'reset' });
+    },
+    [],
+  );
 
   const handleTimeSelectUpdate = useCallback(
     data => {

@@ -3,9 +3,9 @@ import { Schedule, SelectedScheduleMeta } from './types';
 
 export type Props = {
   /** 시간표를 그리기 시작할 날짜 */
-  dateStartAt: Date;
+  dateStartAt?: Date;
   /** 오늘 날짜 */
-  today: Date;
+  today?: Date;
   /** 시간표에 그릴 일정 목록 */
   schedules: Schedule[][];
   /** 현재 선택된 일정 */
@@ -54,22 +54,34 @@ export default function Timetable(props: Props) {
 
   const columns = [];
   for (let i = 0; i < 7; i++) {
-    const date = new Date(dateStartAt);
-    date.setDate(date.getDate() + i);
+    let headingInner = null;
+    let isToday = false;
 
-    const isToday =
-      date.getFullYear() === today.getFullYear() &&
-      date.getMonth() === today.getMonth() &&
-      date.getDate() === today.getDate();
+    if (dateStartAt != null) {
+      const date = new Date(dateStartAt);
+      date.setDate(date.getDate() + i);
 
-    const weekdayStr = weekdayFormatter.format(date);
-    const dateStr = date.getFullYear() +
-      '-' + (date.getMonth() + 1).toString().padStart(2, '0') +
-      '-' + date.getDate().toString().padStart(2, '0');
+      isToday =
+        today != null &&
+        date.getFullYear() === today.getFullYear() &&
+        date.getMonth() === today.getMonth() &&
+        date.getDate() === today.getDate();
+
+      const weekdayStr = weekdayFormatter.format(date);
+      const dateStr = date.getFullYear() +
+        '-' + (date.getMonth() + 1).toString().padStart(2, '0') +
+        '-' + date.getDate().toString().padStart(2, '0');
+      headingInner = (
+        <>
+          <span>{weekdayStr}</span>
+          <span className="text-sm">{dateStr}</span>
+        </>
+      );
+    }
+
     const heading = (
       <div className={`flex flex-col items-center ${isToday ? 'font-bold' : ''}`}>
-        <span>{weekdayStr}</span>
-        <span className="text-sm">{dateStr}</span>
+        {headingInner}
       </div>
     );
 
