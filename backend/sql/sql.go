@@ -84,7 +84,7 @@ func WithTx(ctx context.Context, f func(*Tx) error) (retErr error) {
 	return
 }
 
-func (tx *Tx) GetAllCategory() ([]*types.Category, error) {
+func (tx *Tx) GetAllCategories() ([]*types.Category, error) {
 	query := "select id, name, description from categories"
 	rows, err := tx.tx.Query(query)
 	if err != nil {
@@ -141,7 +141,7 @@ func (tx *Tx) DeleteCategory(categoryId int64) error {
 	return nil
 }
 
-func (tx *Tx) GetAllRoom() ([]*types.Room, error) {
+func (tx *Tx) GetAllRooms() ([]*types.Room, error) {
 	query := "select id, name, seats, category_id from rooms"
 	rows, err := tx.tx.Query(query)
 	if err != nil {
@@ -151,22 +151,28 @@ func (tx *Tx) GetAllRoom() ([]*types.Room, error) {
 	var rooms []*types.Room
 	for rows.Next() {
 		var (
-			id          int64
-			name        string
-			seats       int
-			category_id int64
+			id         int64
+			name       string
+			seats      int
+			categoryId sql.NullInt64
 		)
-		if err := rows.Scan(&id, &name, &seats, &category_id); err != nil {
+		if err := rows.Scan(&id, &name, &seats, &categoryId); err != nil {
 			if err := rows.Close(); err != nil {
 				return nil, err
 			}
 			return nil, err
 		}
+		var c int64
+		if categoryId.Valid {
+			c = categoryId.Int64
+		} else {
+			c = -1
+		}
 		room := &types.Room{
 			Id:         id,
 			Name:       name,
 			Seats:      seats,
-			CategoryId: category_id,
+			CategoryId: c,
 		}
 		rooms = append(rooms, room)
 	}
