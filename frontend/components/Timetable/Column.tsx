@@ -168,6 +168,7 @@ export default function TimetableColumn(props: Props) {
           <MetaPopup
             key={`schedule-${i}-popper`}
             ref={setPopperElement}
+            schedule={schedule}
             meta={selectedMeta}
             onChange={onMetaChange}
             onConfirm={onConfirm}
