@@ -19,7 +19,7 @@ func main() {
 		logrus.WithError(err).Fatal("failed to parse configuration")
 	}
 
-	if config.Config.TestMode {
+	if config.Config.DevMode {
 		logrus.SetLevel(logrus.DebugLevel)
 	}
 

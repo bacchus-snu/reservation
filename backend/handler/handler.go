@@ -16,7 +16,7 @@ import (
 const weekSec int64 = 60 * 60 * 24 * 7
 
 func HandleAddSchedule(w http.ResponseWriter, r *http.Request) {
-	if !verifyToken(r) {
+	if !VerifyToken(r) {
 		httpError(w, http.StatusUnauthorized, "failed to verify token")
 		return
 	}
@@ -82,7 +82,7 @@ func HandleAddSchedule(w http.ResponseWriter, r *http.Request) {
 }
 
 func HandleDeleteSchedule(w http.ResponseWriter, r *http.Request) {
-	if !verifyToken(r) {
+	if !VerifyToken(r) {
 		httpError(w, http.StatusUnauthorized, "failed to verify token")
 		return
 	}

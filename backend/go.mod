@@ -9,5 +9,6 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/lib/pq v1.10.2
 	github.com/sirupsen/logrus v1.8.1
+	github.com/stretchr/testify v1.6.1
 	golang.org/x/sys v0.0.0-20210615035016-665e8c7367d1 // indirect
 )

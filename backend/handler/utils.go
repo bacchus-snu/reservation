@@ -22,8 +22,8 @@ type Payload struct {
 	PermissionIdx int    `json:"permission"`
 }
 
-func verifyToken(r *http.Request) bool {
-	if config.Config.TestMode {
+func VerifyToken(r *http.Request) bool {
+	if config.Config.DevMode {
 		return true
 	}
 

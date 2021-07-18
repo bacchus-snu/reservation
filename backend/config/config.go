@@ -24,7 +24,10 @@ type config struct {
 	JWTAudience      string `env:"JWT_AUDIENCE" envDefault:"bacchus-snu:reservation"`
 	JWTIssuer        string `env:"JWT_ISSUER" envDefault:"bacchus-snu:id"`
 
-	TestMode bool `env:"TEST_MODE" envDefault:"false"`
+	// bypasses jwt auth
+	DevMode bool `env:"DEV_MODE" envDefault:"false"`
+	// test flag (is running with `go test`)
+	IsTest bool `env:"IS_TEST" envDefault:"false"`
 
 	ScheduleRepeatLimit int `env:"SCHEDULE_REPEAT_LIMIT" envDefault:"20"`
 }
@@ -40,22 +43,23 @@ func Parse() error {
 		return err
 	}
 
-	fmt.Printf("path:  %s", Config.JWTPublicKeyPath)
-	keyBytes, err := os.ReadFile(Config.JWTPublicKeyPath)
-	if err != nil {
-		return err
-	}
+	if !Config.IsTest {
+		keyBytes, err := os.ReadFile(Config.JWTPublicKeyPath)
+		if err != nil {
+			return err
+		}
 
-	block, _ := pem.Decode(keyBytes)
-	pubIface, err := x509.ParsePKIXPublicKey(block.Bytes)
-	if err != nil {
-		return err
+		block, _ := pem.Decode(keyBytes)
+		pubIface, err := x509.ParsePKIXPublicKey(block.Bytes)
+		if err != nil {
+			return err
+		}
+		pub, ok := pubIface.(*ecdsa.PublicKey)
+		if !ok || pub == nil {
+			return fmt.Errorf("public key alg is not ecdsa")
+		}
+		Config.JWTPublicKey = pub
 	}
-	pub, ok := pubIface.(*ecdsa.PublicKey)
-	if !ok || pub == nil {
-		return fmt.Errorf("public key alg is not ecdsa")
-	}
-	Config.JWTPublicKey = pub
 
 	return nil
 }
