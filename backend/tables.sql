@@ -8,7 +8,7 @@ create table rooms (
     id bigserial primary key,
     name text not null unique check (name <> ''),
     seats integer not null,
-    category_id bigint references categories(id) on delete cascade
+    category_id bigint references categories(id) on delete set null
 );
 
 create table schedule_groups (
