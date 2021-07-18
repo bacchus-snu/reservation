@@ -30,6 +30,7 @@ func main() {
 	// http handler
 	r := mux.NewRouter()
 	r.HandleFunc(wrap("/api/schedule/add", handler.HandleAddSchedule)).Methods("POST")
+	r.HandleFunc(wrap("/api/schedule/delete", handler.HandleDeleteSchedule)).Methods("POST")
 
 	server := &http.Server{
 		Addr:         config.Config.ListenAddr,

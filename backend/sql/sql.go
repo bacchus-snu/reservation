@@ -20,6 +20,10 @@ const (
 	maxConnLifetime = time.Minute * 5
 )
 
+var (
+	ErrNoRowAffected = errors.New("no rows affected")
+)
+
 var db *sql.DB
 
 func Connect() error {
@@ -134,9 +138,14 @@ func (tx *Tx) AddCategory(category *types.Category) error {
 
 func (tx *Tx) DeleteCategory(categoryId int64) error {
 	query := "delete from categories where id = $1"
-	_, err := tx.tx.Exec(query, categoryId)
+	res, err := tx.tx.Exec(query, categoryId)
 	if err != nil {
 		return err
+	}
+	if affected, err := res.RowsAffected(); err != nil {
+		return err
+	} else if affected <= 0 {
+		return ErrNoRowAffected
 	}
 	return nil
 }
@@ -199,9 +208,14 @@ func (tx *Tx) AddRoom(room *types.Room) error {
 
 func (tx *Tx) DeleteRoom(roomId int64) error {
 	query := "delete from rooms where id = $1"
-	_, err := tx.tx.Exec(query, roomId)
+	res, err := tx.tx.Exec(query, roomId)
 	if err != nil {
 		return err
+	}
+	if affected, err := res.RowsAffected(); err != nil {
+		return err
+	} else if affected <= 0 {
+		return ErrNoRowAffected
 	}
 	return nil
 }
@@ -222,9 +236,14 @@ func (tx *Tx) AddScheduleGroup(group *types.ScheduleGroup) error {
 
 func (tx *Tx) DeleteScheduleGroup(groupId int64) error {
 	query := "delete from groups where id = $1"
-	_, err := tx.tx.Exec(query, groupId)
+	res, err := tx.tx.Exec(query, groupId)
 	if err != nil {
 		return err
+	}
+	if affected, err := res.RowsAffected(); err != nil {
+		return err
+	} else if affected <= 0 {
+		return ErrNoRowAffected
 	}
 	return nil
 }
@@ -268,6 +287,27 @@ func (tx *Tx) GetSchedules(startTimestamp int64, endTimestamp int64) ([]*types.S
 	return schedules, nil
 }
 
+func (tx *Tx) GetScheduleById(id int64) (*types.Schedule, error) {
+	query := "select schedule_group_id, extract(epoch from lower(during)), extract(epoch from upper(during)) from schedules where id = $1"
+	row := tx.tx.QueryRow(query, id)
+
+	var (
+		scheduleGroupId int64
+		startTimestamp  int64
+		endTimestamp    int64
+	)
+	if err := row.Scan(&id, &scheduleGroupId, &startTimestamp, &endTimestamp); err != nil {
+		return nil, err
+	}
+	schedule := &types.Schedule{
+		Id:              id,
+		ScheduleGroupId: scheduleGroupId,
+		StartTimestamp:  startTimestamp,
+		EndTimestamp:    endTimestamp,
+	}
+	return schedule, nil
+}
+
 func (tx *Tx) AddSchedule(schedule *types.Schedule) error {
 	if schedule == nil {
 		return errors.New("schedule is nil")
@@ -284,9 +324,14 @@ func (tx *Tx) AddSchedule(schedule *types.Schedule) error {
 
 func (tx *Tx) DeleteSchedule(id int64) error {
 	query := "delete from schedules where id = $1"
-	_, err := tx.tx.Exec(query, id)
+	res, err := tx.tx.Exec(query, id)
 	if err != nil {
 		return err
+	}
+	if affected, err := res.RowsAffected(); err != nil {
+		return err
+	} else if affected <= 0 {
+		return ErrNoRowAffected
 	}
 	return nil
 }

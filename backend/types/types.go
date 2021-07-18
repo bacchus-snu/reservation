@@ -43,3 +43,8 @@ type AddScheduleReq struct {
 	EndTimestamp   int64  `json:"endTimestamp"`
 	Repeats        int    `json:"repeats"`
 }
+
+type DeleteScheduleReq struct {
+	ScheduleId       int64 `json:"scheduleId"`
+	DeleteAllInGroup bool  `json:"deleteAllInGroup"`
+}
