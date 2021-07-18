@@ -5,11 +5,19 @@ import Timetable from '../components/Timetable';
 import { ScheduleType } from '../components/Timetable/types';
 import type { Schedule, SelectedScheduleMeta } from '../components/Timetable/types';
 
+function getStartOfWeek(now: Date): Date {
+  const ret = new Date(now);
+  let weekday = now.getDay();
+  if (weekday === 0) weekday = 7;
+  ret.setDate(now.getDate() - (weekday - 1));
+  return ret;
+}
+
 export default function Home() {
   const [selectInProgress, setSelectInProgress] = useState<boolean>(false);
   const [selection, setSelection] = useState<{ idx: number, from: number, to: number }>();
   const [selectionMeta, setSelectionMeta] = useState<SelectedScheduleMeta>();
-  const [schedules, dispatch] = useReducer(
+  const [schedules, dispatchSchedules] = useReducer(
     (schedules: Schedule[][], action: { type: 'add'; idx: number; schedule: Schedule }) => {
       switch (action.type) {
         case 'add': {
@@ -26,6 +34,23 @@ export default function Home() {
     },
     [],
     () => Array(7).fill('').map(() => []),
+  );
+  const [dateStartAt, dispatchDate] = useReducer(
+    (date: Date, action: { type: 'next' } | { type: 'prev' }) => {
+      const ret = new Date(date);
+      switch (action.type) {
+        case 'next':
+          ret.setDate(ret.getDate() + 7);
+          return ret;
+        case 'prev':
+          ret.setDate(ret.getDate() - 7);
+          return ret;
+        default:
+          return date;
+      }
+    },
+    new Date(),
+    getStartOfWeek,
   );
 
   const handleTimeSelectUpdate = useCallback(
@@ -74,10 +99,13 @@ export default function Home() {
       }
       end += 1;
 
-      dispatch({ type: 'add', idx, schedule: { name: selectionMeta.name, start, end, type: ScheduleType.Past } });
+      dispatchSchedules({ type: 'add', idx, schedule: { name: selectionMeta.name, start, end, type: ScheduleType.Past } });
     },
     [selection, selectionMeta],
   );
+
+  const handleNextWeek = useCallback(() => dispatchDate({ type: 'next' }), []);
+  const handlePrevWeek = useCallback(() => dispatchDate({ type: 'prev' }), []);
 
   const schedulesWithSel = [...schedules];
   if (selection != null) {
@@ -101,9 +129,9 @@ export default function Home() {
         <meta name="description" content="Room reservation system" />
       </Head>
 
-      <main className="py-20">
+      <main className="py-20 space-y-2">
         <Timetable
-          dateStartAt={new Date('2021-07-12')}
+          dateStartAt={dateStartAt}
           schedules={schedulesWithSel}
           selectedMeta={selectionMeta}
           onTimeSelectUpdate={handleTimeSelectUpdate}
@@ -112,6 +140,10 @@ export default function Home() {
           onMetaChange={setSelectionMeta}
           onConfirm={handleConfirm}
         />
+        <div className="flex flex-row justify-between">
+          <button className="px-2 py-0.5 border rounded" onClick={handlePrevWeek}>prev</button>
+          <button className="px-2 py-0.5 border rounded" onClick={handleNextWeek}>next</button>
+        </div>
       </main>
     </div>
   );
