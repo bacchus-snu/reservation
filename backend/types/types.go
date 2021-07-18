@@ -1,11 +1,16 @@
 package types
 
-type Room struct {
+type Category struct {
 	Id          int64  `json:"id"`
 	Name        string `json:"name"`
-	Seats       int    `json:"seats"`
-	Category    string `json:"category"`
 	Description string `json:"description"`
+}
+
+type Room struct {
+	Id         int64  `json:"id"`
+	Name       string `json:"name"`
+	Seats      int    `json:"seats"`
+	CategoryId int64  `json:"categoryId"`
 }
 
 type ScheduleGroup struct {
