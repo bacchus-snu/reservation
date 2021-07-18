@@ -11,7 +11,7 @@ type MetaPopupProps = {
   popperAttributes: { [key: string]: string } | undefined,
 };
 
-function MetaPopup(props: MetaPopupProps, ref: React.Ref<HTMLDivElement>) {
+function MetaPopup(props: MetaPopupProps, ref: React.Ref<HTMLFormElement>) {
   const { meta, onChange, onConfirm, onCancel, popperStyles, popperAttributes } = props;
 
   const handleChange = useCallback(
@@ -49,9 +49,10 @@ function MetaPopup(props: MetaPopupProps, ref: React.Ref<HTMLDivElement>) {
   );
 
   return (
-    <div
+    <form
       ref={ref}
       className="p-2 w-60 flex flex-col space-y-2 border-2 border-gray-400 bg-white"
+      onSubmit={onConfirm}
       style={popperStyles}
       {...popperAttributes}
     >
@@ -73,6 +74,7 @@ function MetaPopup(props: MetaPopupProps, ref: React.Ref<HTMLDivElement>) {
         <input
           className="block w-full p-1 border border-gray-400 rounded"
           autoFocus
+          required
           value={meta.name}
           onChange={handleNameChange}
         />
@@ -80,8 +82,9 @@ function MetaPopup(props: MetaPopupProps, ref: React.Ref<HTMLDivElement>) {
       <label className="block space-y-1">
         <div>연락 가능한 이메일</div>
         <input
-          type="email"
           className="block w-full p-1 border border-gray-400 rounded"
+          type="email"
+          required
           value={meta.email}
           onChange={handleEmailChange}
         />
@@ -89,8 +92,8 @@ function MetaPopup(props: MetaPopupProps, ref: React.Ref<HTMLDivElement>) {
       <label className="block space-y-1">
         <div>연락 가능한 전화번호</div>
         <input
-          type="tel"
           className="block w-full p-1 border border-gray-400 rounded"
+          type="tel"
           value={meta.phoneNumber}
           onChange={handlePhoneNumberChange}
         />
@@ -99,6 +102,7 @@ function MetaPopup(props: MetaPopupProps, ref: React.Ref<HTMLDivElement>) {
         <div>사용 목적</div>
         <textarea
           className="block w-full p-1 border border-gray-400 rounded"
+          required
           value={meta.comment}
           onChange={handleCommentChange}
         />
@@ -113,12 +117,12 @@ function MetaPopup(props: MetaPopupProps, ref: React.Ref<HTMLDivElement>) {
         </button>
         <button
           className="px-2 py-0.5 border border-blue-600 rounded-md bg-blue-500 font-bold text-white"
-          onClick={onConfirm}
+          type="submit"
         >
           예약하기
         </button>
       </div>
-    </div>
+    </form>
   );
 }
 
