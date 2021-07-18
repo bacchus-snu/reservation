@@ -1,8 +1,9 @@
 import { forwardRef, useCallback } from 'react';
 
-import { SelectedScheduleMeta } from './types';
+import { Schedule, SelectedScheduleMeta } from './types';
 
 type MetaPopupProps = {
+  schedule: Schedule;
   meta: SelectedScheduleMeta;
   onChange?(meta: SelectedScheduleMeta): void;
   onConfirm?(): void;
@@ -12,7 +13,7 @@ type MetaPopupProps = {
 };
 
 function MetaPopup(props: MetaPopupProps, ref: React.Ref<HTMLFormElement>) {
-  const { meta, onChange, onConfirm, onCancel, popperStyles, popperAttributes } = props;
+  const { schedule, meta, onChange, onConfirm, onCancel, popperStyles, popperAttributes } = props;
 
   const handleChange = useCallback(
     <F extends keyof MetaPopupProps['meta']>(field: F, value: MetaPopupProps['meta'][F]) => {
@@ -48,6 +49,12 @@ function MetaPopup(props: MetaPopupProps, ref: React.Ref<HTMLFormElement>) {
     [handleChange],
   );
 
+  const { start, end } = schedule;
+  const scheduleDate =
+    start.getFullYear() + '-' +
+    (start.getMonth() + 1).toString().padStart(2, '0') + '-' +
+    start.getDate().toString().padStart(2, '0');
+
   return (
     <form
       ref={ref}
@@ -56,19 +63,24 @@ function MetaPopup(props: MetaPopupProps, ref: React.Ref<HTMLFormElement>) {
       style={popperStyles}
       {...popperAttributes}
     >
-      <label className="flex flex-row items-baseline space-x-1.5">
-        <span>반복 횟수:</span>
-        <select
-          className="border"
-          value={meta.repeatCount.toString()}
-          onChange={handleRepeatCountChange}
-        >
-          {Array(15).fill('').map((_, idx) => (
-            <option key={idx} value={(idx + 1).toString()}>{idx + 1}</option>
-          ))}
-        </select>
-        주
-      </label>
+      <div>
+        <div>예약 날짜: {scheduleDate}</div>
+        <div>시작 시각: {`${start.getHours().toString().padStart(2, '0')}:${start.getMinutes().toString().padStart(2, '0')}`}</div>
+        <div>종료 시각: {`${end.getHours().toString().padStart(2, '0')}:${end.getMinutes().toString().padStart(2, '0')}`}</div>
+        <label className="flex flex-row items-baseline space-x-1.5">
+          <span>반복 횟수:</span>
+          <select
+            className="border"
+            value={meta.repeatCount.toString()}
+            onChange={handleRepeatCountChange}
+          >
+            {Array(15).fill('').map((_, idx) => (
+              <option key={idx} value={(idx + 1).toString()}>{idx + 1}</option>
+            ))}
+          </select>
+          주
+        </label>
+      </div>
       <label className="block space-y-1">
         <div>단체 이름</div>
         <input
