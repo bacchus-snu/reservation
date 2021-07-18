@@ -4,6 +4,8 @@ import { Schedule, SelectedScheduleMeta } from './types';
 export type Props = {
   /** 시간표를 그리기 시작할 날짜 */
   dateStartAt: Date;
+  /** 오늘 날짜 */
+  today: Date;
   /** 시간표에 그릴 일정 목록 */
   schedules: Schedule[][];
   /** 현재 선택된 일정 */
@@ -31,6 +33,8 @@ const weekdayFormatter = new Intl.DateTimeFormat('ko-KR', { weekday: 'long' });
  * */
 export default function Timetable(props: Props) {
   const {
+    dateStartAt,
+    today,
     selectedMeta,
     onTimeSelectUpdate,
     onTimeSelectDone,
@@ -50,15 +54,20 @@ export default function Timetable(props: Props) {
 
   const columns = [];
   for (let i = 0; i < 7; i++) {
-    const date = new Date(props.dateStartAt);
+    const date = new Date(dateStartAt);
     date.setDate(date.getDate() + i);
+
+    const isToday =
+      date.getFullYear() === today.getFullYear() &&
+      date.getMonth() === today.getMonth() &&
+      date.getDate() === today.getDate();
 
     const weekdayStr = weekdayFormatter.format(date);
     const dateStr = date.getFullYear() +
       '-' + (date.getMonth() + 1).toString().padStart(2, '0') +
       '-' + date.getDate().toString().padStart(2, '0');
     const heading = (
-      <div className="flex flex-col items-center">
+      <div className={`flex flex-col items-center ${isToday ? 'font-bold' : ''}`}>
         <span>{weekdayStr}</span>
         <span className="text-sm">{dateStr}</span>
       </div>

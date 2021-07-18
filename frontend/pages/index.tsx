@@ -52,6 +52,7 @@ export default function Home() {
     new Date(),
     getStartOfWeek,
   );
+  const [today, setToday] = useState(() => new Date());
 
   const handleTimeSelectUpdate = useCallback(
     data => {
@@ -132,6 +133,7 @@ export default function Home() {
       <main className="py-20 space-y-2">
         <Timetable
           dateStartAt={dateStartAt}
+          today={today}
           schedules={schedulesWithSel}
           selectedMeta={selectionMeta}
           onTimeSelectUpdate={handleTimeSelectUpdate}
