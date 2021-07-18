@@ -1,3 +1,4 @@
+import formatDate from 'date-fns/format';
 import { useCallback, useMemo } from 'react';
 
 import TimetableColumn from './Column';
@@ -99,10 +100,8 @@ export default function Timetable(props: Props) {
 
   const timeHeaders = [];
   for (let i = 8; i < 23; i++) {
-    const hour = (i % 12) || 12;
-    const isPM = i >= 12;
     timeHeaders.push(
-      <div key={i} className="px-2 row-span-2 text-sm text-right">{hour}{isPM ? 'PM' : 'AM'}</div>
+      <div key={i} className="px-2 row-span-2 text-sm text-right">{i}</div>
     );
   }
 
@@ -123,9 +122,7 @@ export default function Timetable(props: Props) {
         date.getDate() === today.getDate();
 
       const weekdayStr = weekdayFormatter.format(date);
-      const dateStr = date.getFullYear() +
-        '-' + (date.getMonth() + 1).toString().padStart(2, '0') +
-        '-' + date.getDate().toString().padStart(2, '0');
+      const dateStr = formatDate(date, 'yyyy-MM-dd');
       headingInner = (
         <>
           <span>{weekdayStr}</span>
