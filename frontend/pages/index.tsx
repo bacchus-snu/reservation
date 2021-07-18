@@ -115,7 +115,7 @@ export default function Home() {
   if (selection != null) {
     const type = selectInProgress ? ScheduleType.Selecting : ScheduleType.Selected;
     const { start, end } = selection;
-    schedulesWithSel.push({ name: '선택중', start, end, type });
+    schedulesWithSel.push({ name: '', start, end, type });
   }
 
   return (
