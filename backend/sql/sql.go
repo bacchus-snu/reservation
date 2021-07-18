@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/bacchus-snu/reservation/config"
@@ -32,7 +33,7 @@ func Connect() error {
 	}
 
 	connStr := fmt.Sprintf(
-		"user=%s password=%s dbname=%s host=%s port=%d",
+		"user=%s password=%s dbname=%s host=%s port=%d sslmode=disable",
 		config.Config.SQLUser,
 		config.Config.SQLPassword,
 		config.Config.SQLDBName,
@@ -45,6 +46,17 @@ func Connect() error {
 	}
 
 	db = db_
+	return nil
+}
+
+func TruncateForTest(tableName ...string) error {
+	if !config.Config.IsTest {
+		panic("this function should be called only in test")
+	}
+	_, err := db.Exec(fmt.Sprintf("truncate %s", strings.Join(tableName, ",")))
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -252,7 +264,7 @@ func (tx *Tx) GetSchedules(startTimestamp int64, endTimestamp int64) ([]*types.S
 	if endTimestamp <= startTimestamp {
 		return nil, errors.New("invalid time range")
 	}
-	query := "select id, schedule_group_id, extract(epoch from lower(during)), extract(epoch from upper(during)) from schedules where during <@ tstzrange(to_timestamp($1), to_timestamp($2), '[)')"
+	query := "select id, room_id, schedule_group_id, extract(epoch from lower(during)), extract(epoch from upper(during)) from schedules where during <@ tstzrange(to_timestamp($1), to_timestamp($2), '[)')"
 	rows, err := tx.tx.Query(query)
 	if err != nil {
 		return nil, err
@@ -262,11 +274,12 @@ func (tx *Tx) GetSchedules(startTimestamp int64, endTimestamp int64) ([]*types.S
 	for rows.Next() {
 		var (
 			id              int64
+			roomId          int64
 			scheduleGroupId int64
 			startTimestamp  int64
 			endTimestamp    int64
 		)
-		if err := rows.Scan(&id, &scheduleGroupId, &startTimestamp, &endTimestamp); err != nil {
+		if err := rows.Scan(&id, &roomId, &scheduleGroupId, &startTimestamp, &endTimestamp); err != nil {
 			if err := rows.Close(); err != nil {
 				return nil, err
 			}
@@ -274,6 +287,7 @@ func (tx *Tx) GetSchedules(startTimestamp int64, endTimestamp int64) ([]*types.S
 		}
 		schedule := &types.Schedule{
 			Id:              id,
+			RoomId:          roomId,
 			ScheduleGroupId: scheduleGroupId,
 			StartTimestamp:  startTimestamp,
 			EndTimestamp:    endTimestamp,
@@ -288,19 +302,21 @@ func (tx *Tx) GetSchedules(startTimestamp int64, endTimestamp int64) ([]*types.S
 }
 
 func (tx *Tx) GetScheduleById(id int64) (*types.Schedule, error) {
-	query := "select schedule_group_id, extract(epoch from lower(during)), extract(epoch from upper(during)) from schedules where id = $1"
+	query := "select room_id, schedule_group_id, extract(epoch from lower(during)), extract(epoch from upper(during)) from schedules where id = $1"
 	row := tx.tx.QueryRow(query, id)
 
 	var (
+		roomId          int64
 		scheduleGroupId int64
 		startTimestamp  int64
 		endTimestamp    int64
 	)
-	if err := row.Scan(&id, &scheduleGroupId, &startTimestamp, &endTimestamp); err != nil {
+	if err := row.Scan(&roomId, &scheduleGroupId, &startTimestamp, &endTimestamp); err != nil {
 		return nil, err
 	}
 	schedule := &types.Schedule{
 		Id:              id,
+		RoomId:          roomId,
 		ScheduleGroupId: scheduleGroupId,
 		StartTimestamp:  startTimestamp,
 		EndTimestamp:    endTimestamp,
@@ -312,8 +328,8 @@ func (tx *Tx) AddSchedule(schedule *types.Schedule) error {
 	if schedule == nil {
 		return errors.New("schedule is nil")
 	}
-	query := "insert into schedules (schedule_group_id, during) values ($1, tstzrange(to_timestamp($2), to_timestamp($3), '[)')) returning id"
-	row := tx.tx.QueryRow(query, schedule.ScheduleGroupId, schedule.StartTimestamp, schedule.EndTimestamp)
+	query := "insert into schedules (room_id, schedule_group_id, during) values ($1, $2, tstzrange(to_timestamp($3), to_timestamp($4), '[)')) returning id"
+	row := tx.tx.QueryRow(query, schedule.RoomId, schedule.ScheduleGroupId, schedule.StartTimestamp, schedule.EndTimestamp)
 	var id int64
 	if err := row.Scan(&id); err != nil {
 		return err

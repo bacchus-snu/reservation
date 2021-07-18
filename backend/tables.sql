@@ -23,9 +23,10 @@ create table schedule_groups (
 create extension btree_gist;
 create table schedules (
     id bigserial primary key,
+    room_id bigint not null references rooms(id) on delete cascade,
     schedule_group_id bigint not null references schedule_groups(id) on delete cascade,
     during tstzrange not null,
 
-    exclude using gist (schedule_group_id with =, during with &&)
+    exclude using gist (room_id with =, during with &&)
 );
 create index during_idx on schedules using gist (during);

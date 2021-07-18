@@ -24,6 +24,7 @@ type ScheduleGroup struct {
 
 type Schedule struct {
 	Id              int64 `json:"id"`
+	RoomId          int64 `json:"room_id"`
 	ScheduleGroupId int64 `json:"scheduleGroupId"`
 	StartTimestamp  int64 `json:"startTimestamp"`
 	EndTimestamp    int64 `json:"endTimestamp"`

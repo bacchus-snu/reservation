@@ -41,6 +41,10 @@ func HandleAddSchedule(w http.ResponseWriter, r *http.Request) {
 		httpError(w, http.StatusBadRequest, "too many repeats")
 		return
 	}
+	if req.StartTimestamp >= req.EndTimestamp {
+		httpError(w, http.StatusBadRequest, "invalid time range")
+		return
+	}
 
 	ctx := context.Background()
 	err = sql.WithTx(ctx, func(tx *sql.Tx) error {
