@@ -41,6 +41,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/node", "npm:16.3.3"],
             ["@types/react", "npm:17.0.14"],
             ["autoprefixer", "virtual:05af16f6f013f87e90e07f057f0ff5bd3aa545be79e40a04977e5474b9f231d02da46aa5a866c1f73e0619f2991ebf89379152a17812c797778e89d370314f30#npm:10.3.1"],
+            ["date-fns", "npm:2.22.1"],
             ["eslint", "npm:7.30.0"],
             ["eslint-config-next", "virtual:05af16f6f013f87e90e07f057f0ff5bd3aa545be79e40a04977e5474b9f231d02da46aa5a866c1f73e0619f2991ebf89379152a17812c797778e89d370314f30#npm:11.0.1"],
             ["next", "virtual:05af16f6f013f87e90e07f057f0ff5bd3aa545be79e40a04977e5474b9f231d02da46aa5a866c1f73e0619f2991ebf89379152a17812c797778e89d370314f30#npm:11.0.1"],
@@ -940,6 +941,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/node", "npm:16.3.3"],
             ["@types/react", "npm:17.0.14"],
             ["autoprefixer", "virtual:05af16f6f013f87e90e07f057f0ff5bd3aa545be79e40a04977e5474b9f231d02da46aa5a866c1f73e0619f2991ebf89379152a17812c797778e89d370314f30#npm:10.3.1"],
+            ["date-fns", "npm:2.22.1"],
             ["eslint", "npm:7.30.0"],
             ["eslint-config-next", "virtual:05af16f6f013f87e90e07f057f0ff5bd3aa545be79e40a04977e5474b9f231d02da46aa5a866c1f73e0619f2991ebf89379152a17812c797778e89d370314f30#npm:11.0.1"],
             ["next", "virtual:05af16f6f013f87e90e07f057f0ff5bd3aa545be79e40a04977e5474b9f231d02da46aa5a866c1f73e0619f2991ebf89379152a17812c797778e89d370314f30#npm:11.0.1"],
@@ -1678,6 +1680,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/data-uri-to-buffer-npm-3.0.1-830646f9ee-9f28217ba7.zip/node_modules/data-uri-to-buffer/",
           "packageDependencies": [
             ["data-uri-to-buffer", "npm:3.0.1"]
+          ],
+          "linkType": "HARD",
+        }]
+      ]],
+      ["date-fns", [
+        ["npm:2.22.1", {
+          "packageLocation": "./.yarn/cache/date-fns-npm-2.22.1-cc0cbadceb-a89dc6cdf3.zip/node_modules/date-fns/",
+          "packageDependencies": [
+            ["date-fns", "npm:2.22.1"]
           ],
           "linkType": "HARD",
         }]
