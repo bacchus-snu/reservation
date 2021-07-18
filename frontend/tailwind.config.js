@@ -7,7 +7,7 @@ module.exports = {
         timetable: '6% repeat(7, 1px 1fr)',
       },
       gridTemplateRows: {
-        timetable: 'max-content repeat(30, 1.5rem)',
+        timetable: 'minmax(3rem, max-content) repeat(30, 1.5rem)',
       },
     },
   },
