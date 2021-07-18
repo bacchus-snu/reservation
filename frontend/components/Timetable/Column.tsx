@@ -70,7 +70,7 @@ export default function TimetableColumn(props: Props) {
   );
 
   const [selectionElement, setSelectionElement] = useState<HTMLDivElement | null>(null);
-  const [popperElement, setPopperElement] = useState<HTMLDivElement | null>(null);
+  const [popperElement, setPopperElement] = useState<HTMLFormElement | null>(null);
   const { styles: popperStyles, attributes: popperAttributes } = usePopper(
     selectionElement,
     popperElement,
