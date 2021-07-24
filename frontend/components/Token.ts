@@ -119,3 +119,15 @@ export function useTokenStore(): [TokenState, () => Promise<TokenState>] {
 }
 
 export const TokenStoreProvider = TokenContext.Provider;
+
+export type Payload = {
+  userIdx: number;
+  username: string;
+  permissionIdx: number;
+};
+
+export function getPayloadFromToken(token: string): Payload {
+  const [, payloadEncoded] = token.split('.');
+  const payload: Payload = JSON.parse(window.atob(payloadEncoded));
+  return payload;
+}
