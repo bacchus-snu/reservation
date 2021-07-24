@@ -4,6 +4,7 @@ import { useCallback, useEffect, useReducer, useState } from 'react';
 import Timetable from '../components/Timetable';
 import { ScheduleType } from '../components/Timetable/types';
 import type { Schedule, SelectedScheduleMeta } from '../components/Timetable/types';
+import { useTokenStore } from '../components/Token';
 
 function getStartOfWeek(now: Date): Date {
   const ret = new Date(now);
@@ -57,6 +58,7 @@ export default function Home() {
     undefined,
   );
   const [today, setToday] = useState<Date>();
+  const [{ token }, refreshToken] = useTokenStore();
 
   useEffect(
     () => {
@@ -64,6 +66,20 @@ export default function Home() {
       dispatchDate({ type: 'reset' });
     },
     [],
+  );
+
+  useEffect(
+    () => {
+      refreshToken().catch(console.error);
+    },
+    [refreshToken],
+  );
+
+  useEffect(
+    () => {
+      console.log(token);
+    },
+    [token],
   );
 
   const handleTimeSelectUpdate = useCallback(
