@@ -38,12 +38,14 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./",
           "packageDependencies": [
             ["@popperjs/core", "npm:2.9.2"],
+            ["@types/isomorphic-fetch", "npm:0.0.35"],
             ["@types/node", "npm:16.3.3"],
             ["@types/react", "npm:17.0.14"],
             ["autoprefixer", "virtual:05af16f6f013f87e90e07f057f0ff5bd3aa545be79e40a04977e5474b9f231d02da46aa5a866c1f73e0619f2991ebf89379152a17812c797778e89d370314f30#npm:10.3.1"],
             ["date-fns", "npm:2.22.1"],
             ["eslint", "npm:7.30.0"],
             ["eslint-config-next", "virtual:05af16f6f013f87e90e07f057f0ff5bd3aa545be79e40a04977e5474b9f231d02da46aa5a866c1f73e0619f2991ebf89379152a17812c797778e89d370314f30#npm:11.0.1"],
+            ["isomorphic-fetch", "npm:3.0.0"],
             ["next", "virtual:05af16f6f013f87e90e07f057f0ff5bd3aa545be79e40a04977e5474b9f231d02da46aa5a866c1f73e0619f2991ebf89379152a17812c797778e89d370314f30#npm:11.0.1"],
             ["postcss", "npm:8.3.5"],
             ["react", "npm:17.0.2"],
@@ -382,6 +384,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/@tootallnate-once-npm-1.1.2-0517220057-d030f3fb14.zip/node_modules/@tootallnate/once/",
           "packageDependencies": [
             ["@tootallnate/once", "npm:1.1.2"]
+          ],
+          "linkType": "HARD",
+        }]
+      ]],
+      ["@types/isomorphic-fetch", [
+        ["npm:0.0.35", {
+          "packageLocation": "./.yarn/cache/@types-isomorphic-fetch-npm-0.0.35-9dc60b5011-a9806f9618.zip/node_modules/@types/isomorphic-fetch/",
+          "packageDependencies": [
+            ["@types/isomorphic-fetch", "npm:0.0.35"]
           ],
           "linkType": "HARD",
         }]
@@ -938,12 +949,14 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageDependencies": [
             ["bacchus-reservation", "workspace:."],
             ["@popperjs/core", "npm:2.9.2"],
+            ["@types/isomorphic-fetch", "npm:0.0.35"],
             ["@types/node", "npm:16.3.3"],
             ["@types/react", "npm:17.0.14"],
             ["autoprefixer", "virtual:05af16f6f013f87e90e07f057f0ff5bd3aa545be79e40a04977e5474b9f231d02da46aa5a866c1f73e0619f2991ebf89379152a17812c797778e89d370314f30#npm:10.3.1"],
             ["date-fns", "npm:2.22.1"],
             ["eslint", "npm:7.30.0"],
             ["eslint-config-next", "virtual:05af16f6f013f87e90e07f057f0ff5bd3aa545be79e40a04977e5474b9f231d02da46aa5a866c1f73e0619f2991ebf89379152a17812c797778e89d370314f30#npm:11.0.1"],
+            ["isomorphic-fetch", "npm:3.0.0"],
             ["next", "virtual:05af16f6f013f87e90e07f057f0ff5bd3aa545be79e40a04977e5474b9f231d02da46aa5a866c1f73e0619f2991ebf89379152a17812c797778e89d370314f30#npm:11.0.1"],
             ["postcss", "npm:8.3.5"],
             ["react", "npm:17.0.2"],
@@ -3364,6 +3377,17 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/isexe-npm-2.0.0-b58870bd2e-7b437980bb.zip/node_modules/isexe/",
           "packageDependencies": [
             ["isexe", "npm:2.0.0"]
+          ],
+          "linkType": "HARD",
+        }]
+      ]],
+      ["isomorphic-fetch", [
+        ["npm:3.0.0", {
+          "packageLocation": "./.yarn/cache/isomorphic-fetch-npm-3.0.0-bce711adff-999c2845d4.zip/node_modules/isomorphic-fetch/",
+          "packageDependencies": [
+            ["isomorphic-fetch", "npm:3.0.0"],
+            ["node-fetch", "npm:2.6.1"],
+            ["whatwg-fetch", "npm:3.6.2"]
           ],
           "linkType": "HARD",
         }]
@@ -6293,6 +6317,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/webidl-conversions-npm-4.0.2-1d159e6409-75c2ada426.zip/node_modules/webidl-conversions/",
           "packageDependencies": [
             ["webidl-conversions", "npm:4.0.2"]
+          ],
+          "linkType": "HARD",
+        }]
+      ]],
+      ["whatwg-fetch", [
+        ["npm:3.6.2", {
+          "packageLocation": "./.yarn/cache/whatwg-fetch-npm-3.6.2-4bdf324792-eaa370015f.zip/node_modules/whatwg-fetch/",
+          "packageDependencies": [
+            ["whatwg-fetch", "npm:3.6.2"]
           ],
           "linkType": "HARD",
         }]
