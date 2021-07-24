@@ -58,7 +58,7 @@ export default function Home() {
     undefined,
   );
   const [today, setToday] = useState<Date>();
-  const [{ token }, refreshToken] = useTokenStore();
+  const [tokenState, refreshToken] = useTokenStore();
 
   useEffect(
     () => {
@@ -73,13 +73,6 @@ export default function Home() {
       refreshToken().catch(console.error);
     },
     [refreshToken],
-  );
-
-  useEffect(
-    () => {
-      console.log(token);
-    },
-    [token],
   );
 
   const handleTimeSelectUpdate = useCallback(
@@ -128,13 +121,28 @@ export default function Home() {
   const handleNextWeek = useCallback(() => dispatchDate({ type: 'next' }), []);
   const handlePrevWeek = useCallback(() => dispatchDate({ type: 'prev' }), []);
 
-  const payload = token == null ? null : getPayloadFromToken(token);
+  const payload = tokenState.token == null ? null : getPayloadFromToken(tokenState.token);
 
   const schedulesWithSel = [...schedules];
   if (selection != null) {
     const type = selectInProgress ? ScheduleType.Selecting : ScheduleType.Selected;
     const { start, end } = selection;
     schedulesWithSel.push({ name: '', start, end, type });
+  }
+
+  let loginState: React.ReactNode = null;
+  if (tokenState.loading) {
+    loginState = '...';
+  } else if (tokenState.error) {
+    loginState = '에러가 발생했습니다.';
+  } else if (payload == null) {
+    loginState = (
+      <a href="https://id.snucse.org" target="_blank" rel="noopener noreferrer" className="text-blue-500">
+        통합계정으로 로그인하세요
+      </a>
+    );
+  } else {
+    loginState = `${payload.username}님, 환영합니다.`;
   }
 
   return (
@@ -151,15 +159,7 @@ export default function Home() {
             <button className="px-2 py-0.5 border rounded" onClick={handlePrevWeek}>{'<'}</button>
             <button className="px-2 py-0.5 border rounded" onClick={handleNextWeek}>{'>'}</button>
           </div>
-          <div>
-            {payload == null ? (
-              <a href="https://id.snucse.org" target="_blank" rel="noopener noreferrer" className="text-blue-500">
-                통합계정으로 로그인하세요
-              </a>
-            ) : (
-              payload.username
-            )}
-          </div>
+          <div>{loginState}</div>
         </div>
         <Timetable
           dateStartAt={dateStartAt}
