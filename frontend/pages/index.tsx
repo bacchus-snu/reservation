@@ -4,7 +4,7 @@ import { useCallback, useEffect, useReducer, useState } from 'react';
 import Timetable from '../components/Timetable';
 import { ScheduleType } from '../components/Timetable/types';
 import type { Schedule, SelectedScheduleMeta } from '../components/Timetable/types';
-import { useTokenStore } from '../components/Token';
+import { getPayloadFromToken, useTokenStore } from '../components/Token';
 
 function getStartOfWeek(now: Date): Date {
   const ret = new Date(now);
@@ -124,8 +124,11 @@ export default function Home() {
     [selection, selectionMeta],
   );
 
+  const handleResetWeek = useCallback(() => dispatchDate({ type: 'reset' }), []);
   const handleNextWeek = useCallback(() => dispatchDate({ type: 'next' }), []);
   const handlePrevWeek = useCallback(() => dispatchDate({ type: 'prev' }), []);
+
+  const payload = token == null ? null : getPayloadFromToken(token);
 
   const schedulesWithSel = [...schedules];
   if (selection != null) {
@@ -142,6 +145,22 @@ export default function Home() {
       </Head>
 
       <main className="py-20 space-y-2">
+        <div className="flex flex-row justify-between items-baseline">
+          <div className="flex flex-row space-x-2">
+            <button className="px-2 py-0.5 border rounded" onClick={handleResetWeek}>오늘</button>
+            <button className="px-2 py-0.5 border rounded" onClick={handlePrevWeek}>{'<'}</button>
+            <button className="px-2 py-0.5 border rounded" onClick={handleNextWeek}>{'>'}</button>
+          </div>
+          <div>
+            {payload == null ? (
+              <a href="https://id.snucse.org" target="_blank" rel="noopener noreferrer" className="text-blue-500">
+                통합계정으로 로그인하세요
+              </a>
+            ) : (
+              payload.username
+            )}
+          </div>
+        </div>
         <Timetable
           dateStartAt={dateStartAt}
           today={today}
@@ -153,10 +172,6 @@ export default function Home() {
           onMetaChange={setSelectionMeta}
           onConfirm={handleConfirm}
         />
-        <div className="flex flex-row justify-between">
-          <button className="px-2 py-0.5 border rounded" onClick={handlePrevWeek}>prev</button>
-          <button className="px-2 py-0.5 border rounded" onClick={handleNextWeek}>next</button>
-        </div>
       </main>
     </div>
   );
