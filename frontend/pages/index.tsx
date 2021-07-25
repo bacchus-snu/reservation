@@ -162,6 +162,7 @@ export default function Home() {
           <div>{loginState}</div>
         </div>
         <Timetable
+          disabled={!(tokenState.token != null && tokenState.error == null)}
           dateStartAt={dateStartAt}
           today={today}
           schedules={schedulesWithSel}
