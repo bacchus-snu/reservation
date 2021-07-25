@@ -6,6 +6,7 @@ import (
 	"encoding/pem"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/caarlos0/env/v6"
 )
@@ -30,6 +31,8 @@ type config struct {
 	IsTest bool `env:"IS_TEST" envDefault:"false"`
 
 	ScheduleRepeatLimit int `env:"SCHEDULE_REPEAT_LIMIT" envDefault:"20"`
+	// schedule query range limit
+	ScheduleTimeRangeLimit time.Duration `env:"SCHEDULE_TIME_RANGE_LIMIT" envDefault:"180h"`
 }
 
 var Config *config

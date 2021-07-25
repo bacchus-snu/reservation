@@ -130,3 +130,56 @@ func HandleDeleteSchedule(w http.ResponseWriter, r *http.Request) {
 		logrus.WithError(err).Error("failed to write success response")
 	}
 }
+
+func HandleGetSchedule(w http.ResponseWriter, r *http.Request) {
+	b, err := io.ReadAll(r.Body)
+	if err != nil {
+		httpError(w, http.StatusBadRequest, "failed to read req body", err)
+		return
+	}
+
+	var req types.GetScheduleReq
+	if err := json.NewDecoder(bytes.NewReader(b)).Decode(&req); err != nil {
+		httpError(w, http.StatusBadRequest, "failed to deserialize req body", err)
+		return
+	}
+
+	if req.StartTimestamp >= req.EndTimestamp {
+		httpError(w, http.StatusBadRequest, "invalid time range")
+		return
+	}
+	if req.EndTimestamp-req.StartTimestamp > int64(config.Config.ScheduleTimeRangeLimit.Seconds()) {
+		httpError(w, http.StatusBadRequest, "time range is too wide")
+		return
+	}
+
+	var (
+		schedules []*types.Schedule
+	)
+	ctx := context.Background()
+	err = sql.WithTx(ctx, func(tx *sql.Tx) error {
+		schedules_, err := tx.GetSchedules(req.StartTimestamp, req.EndTimestamp)
+		if err != nil {
+			return err
+		}
+		schedules = schedules_
+		return nil
+	})
+	if err != nil {
+		httpError(w, http.StatusBadRequest, "failed to get schedule", err)
+		return
+	}
+
+	var resp types.GetScheduleResp
+	resp.Schedules = schedules
+
+	if b, err := json.Marshal(&resp); err != nil {
+		httpError(w, http.StatusInternalServerError, "failed to marshal response", err)
+		return
+	} else {
+		w.WriteHeader(http.StatusOK)
+		if _, err := w.Write(b); err != nil {
+			logrus.WithError(err).Error("failed to write success response")
+		}
+	}
+}

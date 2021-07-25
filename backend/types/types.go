@@ -24,7 +24,7 @@ type ScheduleGroup struct {
 
 type Schedule struct {
 	Id              int64 `json:"id"`
-	RoomId          int64 `json:"room_id"`
+	RoomId          int64 `json:"roomId"`
 	ScheduleGroupId int64 `json:"scheduleGroupId"`
 	StartTimestamp  int64 `json:"startTimestamp"`
 	EndTimestamp    int64 `json:"endTimestamp"`
@@ -48,4 +48,13 @@ type AddScheduleReq struct {
 type DeleteScheduleReq struct {
 	ScheduleId       int64 `json:"scheduleId"`
 	DeleteAllInGroup bool  `json:"deleteAllInGroup"`
+}
+
+type GetScheduleReq struct {
+	StartTimestamp int64 `json:"startTimestamp"`
+	EndTimestamp   int64 `json:"endTimestamp"`
+}
+
+type GetScheduleResp struct {
+	Schedules []*Schedule
 }
