@@ -265,7 +265,7 @@ func (tx *Tx) GetSchedules(startTimestamp int64, endTimestamp int64) ([]*types.S
 		return nil, errors.New("invalid time range")
 	}
 	query := "select id, room_id, schedule_group_id, extract(epoch from lower(during)), extract(epoch from upper(during)) from schedules where during <@ tstzrange(to_timestamp($1), to_timestamp($2), '[)')"
-	rows, err := tx.tx.Query(query)
+	rows, err := tx.tx.Query(query, startTimestamp, endTimestamp)
 	if err != nil {
 		return nil, err
 	}
