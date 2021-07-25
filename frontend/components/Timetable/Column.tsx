@@ -198,6 +198,7 @@ export default function TimetableColumn(props: Props) {
       let bgColor = 'bg-gray-100';
       switch (schedule.type) {
         case ScheduleType.Selecting:
+        case ScheduleType.Upcoming:
           bgColor = 'bg-blue-200';
           break;
         case ScheduleType.Selected:
