@@ -1,17 +1,17 @@
-create table categories (
+create table if not exists categories (
     id bigserial primary key,
     name text not null unique check (name <> ''),
     description text not null
 );
 
-create table rooms (
+create table if not exists rooms (
     id bigserial primary key,
     name text not null unique check (name <> ''),
     seats integer not null,
     category_id bigint references categories(id) on delete set null
 );
 
-create table schedule_groups (
+create table if not exists schedule_groups (
     id bigserial primary key,
     room_id bigint not null references rooms(id) on delete cascade,
     reservee text not null check (reservee <> ''),
@@ -20,8 +20,8 @@ create table schedule_groups (
     reason text not null check (reason <> '')
 );
 
-create extension btree_gist;
-create table schedules (
+create extension if not exists btree_gist;
+create table if not exists schedules (
     id bigserial primary key,
     room_id bigint not null references rooms(id) on delete cascade,
     schedule_group_id bigint not null references schedule_groups(id) on delete cascade,
@@ -29,4 +29,4 @@ create table schedules (
 
     exclude using gist (room_id with =, during with &&)
 );
-create index during_idx on schedules using gist (during);
+create index if not exists during_idx on schedules using gist (during);
