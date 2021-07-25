@@ -171,7 +171,11 @@ func HandleGetSchedule(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var resp types.GetScheduleResp
-	resp.Schedules = schedules
+	if len(schedules) == 0 {
+		resp.Schedules = make([]*types.Schedule, 0)
+	} else {
+		resp.Schedules = schedules
+	}
 
 	if b, err := json.Marshal(&resp); err != nil {
 		httpError(w, http.StatusInternalServerError, "failed to marshal response", err)

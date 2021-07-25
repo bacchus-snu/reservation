@@ -56,5 +56,5 @@ type GetScheduleReq struct {
 }
 
 type GetScheduleResp struct {
-	Schedules []*Schedule
+	Schedules []*Schedule `json:"schedules"`
 }
