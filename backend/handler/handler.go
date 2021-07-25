@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"strconv"
 
 	"github.com/bacchus-snu/reservation/config"
 	"github.com/bacchus-snu/reservation/sql"
@@ -132,17 +133,20 @@ func HandleDeleteSchedule(w http.ResponseWriter, r *http.Request) {
 }
 
 func HandleGetSchedule(w http.ResponseWriter, r *http.Request) {
-	b, err := io.ReadAll(r.Body)
-	if err != nil {
-		httpError(w, http.StatusBadRequest, "failed to read req body", err)
-		return
-	}
-
 	var req types.GetScheduleReq
-	if err := json.NewDecoder(bytes.NewReader(b)).Decode(&req); err != nil {
-		httpError(w, http.StatusBadRequest, "failed to deserialize req body", err)
+	qs := r.URL.Query()
+	sts, err := strconv.ParseInt(qs.Get("startTimestamp"), 10, 64)
+	if err != nil {
+		httpError(w, http.StatusBadRequest, "cannot parse query value", err)
 		return
 	}
+	ets, err := strconv.ParseInt(qs.Get("endTimestamp"), 10, 64)
+	if err != nil {
+		httpError(w, http.StatusBadRequest, "cannot parse query value", err)
+		return
+	}
+	req.StartTimestamp = sts
+	req.EndTimestamp = ets
 
 	if req.StartTimestamp >= req.EndTimestamp {
 		httpError(w, http.StatusBadRequest, "invalid time range")

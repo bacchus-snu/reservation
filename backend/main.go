@@ -31,7 +31,7 @@ func main() {
 	r := mux.NewRouter()
 	r.HandleFunc(wrap("/api/schedule/add", handler.HandleAddSchedule)).Methods("POST")
 	r.HandleFunc(wrap("/api/schedule/delete", handler.HandleDeleteSchedule)).Methods("POST")
-	r.HandleFunc(wrap("/api/schedule/get", handler.HandleGetSchedule)).Methods("POST")
+	r.HandleFunc(wrap("/api/schedule/get", handler.HandleGetSchedule)).Methods("GET")
 
 	server := &http.Server{
 		Addr:         config.Config.ListenAddr,
