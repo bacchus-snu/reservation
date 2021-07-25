@@ -86,14 +86,19 @@ export default function Home() {
   const handleTimeSelectDone = useCallback(
     data => {
       setSelectInProgress(false);
-      setSelectionMeta({
-        name: '',
-        repeatCount: 1,
-        email: '',
-        phoneNumber: '',
-        comment: '',
-      });
-      setSelection(data);
+      if (Number(data.start) > Date.now()) {
+        setSelectionMeta({
+          name: '',
+          repeatCount: 1,
+          email: '',
+          phoneNumber: '',
+          comment: '',
+        });
+        setSelection(data);
+      } else {
+        setSelectionMeta(undefined);
+        setSelection(undefined);
+      }
     },
     [],
   );
