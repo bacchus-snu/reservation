@@ -5,6 +5,8 @@ import TimetableColumn from './Column';
 import { Schedule, SelectedScheduleMeta } from './types';
 
 export type Props = {
+  /** 상호작용 비활성화 */
+  disabled?: boolean;
   /** 시간표를 그리기 시작할 날짜 */
   dateStartAt?: Date;
   /** 오늘 날짜 */
@@ -62,6 +64,7 @@ function convertSelection(dateStartAt: Date, data: { idx: number; from: number; 
  * */
 export default function Timetable(props: Props) {
   const {
+    disabled,
     dateStartAt,
     today,
     schedules,
@@ -84,18 +87,20 @@ export default function Timetable(props: Props) {
 
   const handleTimeSelectUpdate = useCallback(
     data => {
+      if (disabled) return;
       if (dateStartAt == null) return;
       onTimeSelectUpdate?.(convertSelection(dateStartAt, data));
     },
-    [dateStartAt, onTimeSelectUpdate],
+    [disabled, dateStartAt, onTimeSelectUpdate],
   );
 
   const handleTimeSelectDone = useCallback(
     data => {
+      if (disabled) return;
       if (dateStartAt == null) return;
       onTimeSelectDone?.(convertSelection(dateStartAt, data));
     },
-    [dateStartAt, onTimeSelectDone],
+    [disabled, dateStartAt, onTimeSelectDone],
   );
 
   const timeHeaders = [];
