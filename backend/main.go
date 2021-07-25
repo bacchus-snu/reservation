@@ -54,6 +54,7 @@ func wrap(path string, f func(http.ResponseWriter, *http.Request)) (string, func
 				logrus.WithError(panicErr).WithField("path", path).Error("panicked at handler")
 			}
 		}()
+		f(w, r)
 	}
 	return path, wrapped
 }
