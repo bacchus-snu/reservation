@@ -59,7 +59,7 @@ func setJWTToken(t *testing.T, r *http.Request, userIdx int, username string, pe
 }
 
 func generateToken(userIdx int, username string, permissionIdx int) (string, error) {
-	payload := handler.Payload{
+	payload := handler.JWTPayload{
 		Issuer:        config.Config.JWTIssuer,
 		Audience:      config.Config.JWTAudience,
 		Expire:        time.Now().Add(time.Second * 100).Unix(),
@@ -70,7 +70,7 @@ func generateToken(userIdx int, username string, permissionIdx int) (string, err
 	return generateTokenWithPayload(&payload)
 }
 
-func generateTokenWithPayload(payload *handler.Payload) (string, error) {
+func generateTokenWithPayload(payload *handler.JWTPayload) (string, error) {
 	if jwtPrivateKey == nil {
 		panic("private key is not provided")
 	}
@@ -88,7 +88,8 @@ func TestJWT(t *testing.T) {
 	{
 		// no authorization header
 		req := httptest.NewRequest("POST", "/api", nil)
-		assert.False(t, handler.VerifyToken(req))
+		_, validToken := handler.ParseToken(req)
+		assert.False(t, validToken)
 	}
 	{
 		// malformed token
@@ -97,11 +98,12 @@ func TestJWT(t *testing.T) {
 
 		req := httptest.NewRequest("POST", "/api", nil)
 		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token[:len(token)-3]))
-		assert.False(t, handler.VerifyToken(req))
+		_, validToken := handler.ParseToken(req)
+		assert.False(t, validToken)
 	}
 	{
 		// invalid issuer
-		payload := &handler.Payload{
+		payload := &handler.JWTPayload{
 			Issuer:        "doge",
 			Audience:      config.Config.JWTAudience,
 			Expire:        time.Now().Add(time.Second * 100).Unix(),
@@ -114,11 +116,12 @@ func TestJWT(t *testing.T) {
 
 		req := httptest.NewRequest("POST", "/api", nil)
 		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token[:len(token)-3]))
-		assert.False(t, handler.VerifyToken(req))
+		_, validToken := handler.ParseToken(req)
+		assert.False(t, validToken)
 	}
 	{
 		// invalid audience
-		payload := &handler.Payload{
+		payload := &handler.JWTPayload{
 			Issuer:        config.Config.JWTIssuer,
 			Audience:      "doge",
 			Expire:        time.Now().Add(time.Second * 100).Unix(),
@@ -131,11 +134,12 @@ func TestJWT(t *testing.T) {
 
 		req := httptest.NewRequest("POST", "/api", nil)
 		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token[:len(token)-3]))
-		assert.False(t, handler.VerifyToken(req))
+		_, validToken := handler.ParseToken(req)
+		assert.False(t, validToken)
 	}
 	{
 		// expired token
-		payload := &handler.Payload{
+		payload := &handler.JWTPayload{
 			Issuer:        config.Config.JWTIssuer,
 			Audience:      config.Config.JWTAudience,
 			Expire:        time.Now().Add(-time.Second * 100).Unix(),
@@ -148,7 +152,8 @@ func TestJWT(t *testing.T) {
 
 		req := httptest.NewRequest("POST", "/api", nil)
 		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token[:len(token)-3]))
-		assert.False(t, handler.VerifyToken(req))
+		_, validToken := handler.ParseToken(req)
+		assert.False(t, validToken)
 	}
 	{
 		// good token
@@ -157,7 +162,8 @@ func TestJWT(t *testing.T) {
 
 		req := httptest.NewRequest("POST", "/api", nil)
 		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
-		assert.True(t, handler.VerifyToken(req))
+		_, validToken := handler.ParseToken(req)
+		assert.True(t, validToken)
 	}
 }
 

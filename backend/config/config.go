@@ -30,6 +30,8 @@ type config struct {
 	// test flag (is running with `go test`)
 	IsTest bool `env:"IS_TEST" envDefault:"false"`
 
+	// permission idx of admin
+	AdminPermissionIdx  int `env:"ADMIN_PERMISSION_IDX" envDefault:"-1"`
 	ScheduleRepeatLimit int `env:"SCHEDULE_REPEAT_LIMIT" envDefault:"20"`
 	// schedule query range limit
 	ScheduleTimeRangeLimit time.Duration `env:"SCHEDULE_TIME_RANGE_LIMIT" envDefault:"180h"`

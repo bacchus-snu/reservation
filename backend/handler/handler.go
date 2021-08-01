@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"strconv"
@@ -17,7 +18,9 @@ import (
 const weekSec int64 = 60 * 60 * 24 * 7
 
 func HandleAddSchedule(w http.ResponseWriter, r *http.Request) {
-	if !VerifyToken(r) {
+	var p *JWTPayload
+	p, validToken := ParseToken(r)
+	if !validToken {
 		httpError(w, http.StatusUnauthorized, "failed to verify token")
 		return
 	}
@@ -51,6 +54,7 @@ func HandleAddSchedule(w http.ResponseWriter, r *http.Request) {
 	err = sql.WithTx(ctx, func(tx *sql.Tx) error {
 		g := &types.ScheduleGroup{
 			RoomId:      req.RoomId,
+			UserIdx:     int64(p.UserIdx),
 			Reservee:    req.Reservee,
 			Email:       req.Email,
 			PhoneNumber: req.PhoneNumber,
@@ -87,7 +91,9 @@ func HandleAddSchedule(w http.ResponseWriter, r *http.Request) {
 }
 
 func HandleDeleteSchedule(w http.ResponseWriter, r *http.Request) {
-	if !VerifyToken(r) {
+	var p *JWTPayload
+	p, validToken := ParseToken(r)
+	if !validToken {
 		httpError(w, http.StatusUnauthorized, "failed to verify token")
 		return
 	}
@@ -106,11 +112,18 @@ func HandleDeleteSchedule(w http.ResponseWriter, r *http.Request) {
 
 	ctx := context.Background()
 	err = sql.WithTx(ctx, func(tx *sql.Tx) error {
+		schedule, err := tx.GetScheduleById(req.ScheduleId)
+		if err != nil {
+			return err
+		}
+		scheduleGroup, err := tx.GetScheduleGroupById(schedule.ScheduleGroupId)
+		if err != nil {
+			return err
+		}
+		if scheduleGroup.UserIdx != int64(p.UserIdx) && !isAdmin(p.PermissionIdx) {
+			return errors.New("you are not the owner of schedule")
+		}
 		if req.DeleteAllInGroup {
-			schedule, err := tx.GetScheduleById(req.ScheduleId)
-			if err != nil {
-				return err
-			}
 			if err := tx.DeleteScheduleGroup(schedule.ScheduleGroupId); err != nil {
 				return err
 			}

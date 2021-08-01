@@ -14,6 +14,7 @@ create table if not exists rooms (
 create table if not exists schedule_groups (
     id bigserial primary key,
     room_id bigint not null references rooms(id) on delete cascade,
+    user_idx bigint not null,
     reservee text not null check (reservee <> ''),
     email text not null check (email <> ''),
     phone_number text not null check (phone_number <> ''),

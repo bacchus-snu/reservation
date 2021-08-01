@@ -232,12 +232,39 @@ func (tx *Tx) DeleteRoom(roomId int64) error {
 	return nil
 }
 
+func (tx *Tx) GetScheduleGroupById(id int64) (*types.ScheduleGroup, error) {
+	query := "select room_id, user_idx, reservee, email, phone_number, reason from schedules where id = $1"
+	row := tx.tx.QueryRow(query, id)
+
+	var (
+		roomId      int64
+		userIdx     int64
+		reservee    string
+		email       string
+		phoneNumber string
+		reason      string
+	)
+	if err := row.Scan(&roomId, &userIdx, &reservee, &email, &phoneNumber, &reason); err != nil {
+		return nil, err
+	}
+	sg := &types.ScheduleGroup{
+		Id:          id,
+		RoomId:      roomId,
+		UserIdx:     userIdx,
+		Reservee:    reservee,
+		Email:       email,
+		PhoneNumber: phoneNumber,
+		Reason:      reason,
+	}
+	return sg, nil
+}
+
 func (tx *Tx) AddScheduleGroup(group *types.ScheduleGroup) error {
 	if group == nil {
 		return errors.New("group is nil")
 	}
-	query := "insert into schedule_groups (room_id, reservee, email, phone_number, reason) values ($1, $2, $3, $4, $5) returning id"
-	row := tx.tx.QueryRow(query, group.RoomId, group.Reservee, group.Email, group.PhoneNumber, group.Reason)
+	query := "insert into schedule_groups (room_id, user_idx, reservee, email, phone_number, reason) values ($1, $2, $3, $4, $5) returning id"
+	row := tx.tx.QueryRow(query, group.RoomId, group.UserIdx, group.Reservee, group.Email, group.PhoneNumber, group.Reason)
 	var id int64
 	if err := row.Scan(&id); err != nil {
 		return err

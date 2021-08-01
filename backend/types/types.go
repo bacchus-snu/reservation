@@ -16,6 +16,7 @@ type Room struct {
 type ScheduleGroup struct {
 	Id          int64  `json:"id"`
 	RoomId      int64  `json:"roomId"`
+	UserIdx     int64  `json:"userIdx"`
 	Reservee    string `json:"reservee"`
 	Email       string `json:"email"`
 	PhoneNumber string `json:"phoneNumber"`
