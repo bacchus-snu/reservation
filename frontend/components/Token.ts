@@ -1,9 +1,11 @@
 import fetch from 'isomorphic-fetch';
 import { createContext, useContext, useEffect, useState } from 'react';
 
-// TODO: make these configurable
-const adminPermissionIdx = 7;
-const jwtEndpoint = 'https://id.snucse.org/api/issue-jwt';
+const adminPermissionIdx = parseInt(process.env.NEXT_PUBLIC_ADMIN_PERMISSION || '7', 10);
+const jwtEndpoint = (() => {
+  const url = new URL('issue-jwt', process.env.NEXT_PUBLIC_ID_BASE);
+  return url.toString();
+})();
 
 export type TokenState = {
   token: string | null;
