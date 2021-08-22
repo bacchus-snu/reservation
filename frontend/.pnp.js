@@ -51,6 +51,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["react", "npm:17.0.2"],
             ["react-dom", "virtual:05af16f6f013f87e90e07f057f0ff5bd3aa545be79e40a04977e5474b9f231d02da46aa5a866c1f73e0619f2991ebf89379152a17812c797778e89d370314f30#npm:17.0.2"],
             ["react-popper", "virtual:05af16f6f013f87e90e07f057f0ff5bd3aa545be79e40a04977e5474b9f231d02da46aa5a866c1f73e0619f2991ebf89379152a17812c797778e89d370314f30#npm:2.2.5"],
+            ["swr", "virtual:05af16f6f013f87e90e07f057f0ff5bd3aa545be79e40a04977e5474b9f231d02da46aa5a866c1f73e0619f2991ebf89379152a17812c797778e89d370314f30#npm:0.5.7"],
             ["tailwindcss", "virtual:05af16f6f013f87e90e07f057f0ff5bd3aa545be79e40a04977e5474b9f231d02da46aa5a866c1f73e0619f2991ebf89379152a17812c797778e89d370314f30#npm:2.2.4"],
             ["typescript", "patch:typescript@npm%3A4.3.5#builtin<compat/typescript>::version=4.3.5&hash=ddfc1b"]
           ],
@@ -962,6 +963,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["react", "npm:17.0.2"],
             ["react-dom", "virtual:05af16f6f013f87e90e07f057f0ff5bd3aa545be79e40a04977e5474b9f231d02da46aa5a866c1f73e0619f2991ebf89379152a17812c797778e89d370314f30#npm:17.0.2"],
             ["react-popper", "virtual:05af16f6f013f87e90e07f057f0ff5bd3aa545be79e40a04977e5474b9f231d02da46aa5a866c1f73e0619f2991ebf89379152a17812c797778e89d370314f30#npm:2.2.5"],
+            ["swr", "virtual:05af16f6f013f87e90e07f057f0ff5bd3aa545be79e40a04977e5474b9f231d02da46aa5a866c1f73e0619f2991ebf89379152a17812c797778e89d370314f30#npm:0.5.7"],
             ["tailwindcss", "virtual:05af16f6f013f87e90e07f057f0ff5bd3aa545be79e40a04977e5474b9f231d02da46aa5a866c1f73e0619f2991ebf89379152a17812c797778e89d370314f30#npm:2.2.4"],
             ["typescript", "patch:typescript@npm%3A4.3.5#builtin<compat/typescript>::version=4.3.5&hash=ddfc1b"]
           ],
@@ -1807,6 +1809,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/depd-npm-1.1.2-b0c8414da7-f45566ff70.zip/node_modules/depd/",
           "packageDependencies": [
             ["depd", "npm:1.1.2"]
+          ],
+          "linkType": "HARD",
+        }]
+      ]],
+      ["dequal", [
+        ["npm:2.0.2", {
+          "packageLocation": "./.yarn/cache/dequal-npm-2.0.2-370927eb6c-3b5b019a87.zip/node_modules/dequal/",
+          "packageDependencies": [
+            ["dequal", "npm:2.0.2"]
           ],
           "linkType": "HARD",
         }]
@@ -5832,6 +5843,29 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageDependencies": [
             ["supports-color", "npm:8.1.1"],
             ["has-flag", "npm:4.0.0"]
+          ],
+          "linkType": "HARD",
+        }]
+      ]],
+      ["swr", [
+        ["npm:0.5.7", {
+          "packageLocation": "./.yarn/cache/swr-npm-0.5.7-8528ace0f6-6aaeb3ec00.zip/node_modules/swr/",
+          "packageDependencies": [
+            ["swr", "npm:0.5.7"]
+          ],
+          "linkType": "SOFT",
+        }],
+        ["virtual:05af16f6f013f87e90e07f057f0ff5bd3aa545be79e40a04977e5474b9f231d02da46aa5a866c1f73e0619f2991ebf89379152a17812c797778e89d370314f30#npm:0.5.7", {
+          "packageLocation": "./.yarn/$$virtual/swr-virtual-2653f6d0dc/0/cache/swr-npm-0.5.7-8528ace0f6-6aaeb3ec00.zip/node_modules/swr/",
+          "packageDependencies": [
+            ["swr", "virtual:05af16f6f013f87e90e07f057f0ff5bd3aa545be79e40a04977e5474b9f231d02da46aa5a866c1f73e0619f2991ebf89379152a17812c797778e89d370314f30#npm:0.5.7"],
+            ["@types/react", "npm:17.0.14"],
+            ["dequal", "npm:2.0.2"],
+            ["react", "npm:17.0.2"]
+          ],
+          "packagePeers": [
+            "@types/react",
+            "react"
           ],
           "linkType": "HARD",
         }]

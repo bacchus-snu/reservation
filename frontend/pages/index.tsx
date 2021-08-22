@@ -1,5 +1,8 @@
+import { addWeeks, getUnixTime } from 'date-fns';
+import fetch from 'isomorphic-fetch';
 import Head from 'next/head';
 import { useCallback, useEffect, useReducer, useState } from 'react';
+import useSWR from 'swr';
 
 import Timetable from '../components/Timetable';
 import { ScheduleType } from '../components/Timetable/types';
@@ -14,22 +17,22 @@ function getStartOfWeek(now: Date): Date {
   return ret;
 }
 
+async function fetcher(key: string): Promise<Schedule[]> {
+  if (key === '') return [];
+
+  const resp = await fetch(key);
+  if (resp.status !== 200) {
+    throw new Error(`${key} returned status ${resp.status} ${resp.statusText}`);
+  }
+
+  const data = await resp.json();
+  return data.schedules;
+}
+
 export default function Home() {
   const [selectInProgress, setSelectInProgress] = useState<boolean>(false);
   const [selection, setSelection] = useState<{ start: Date, end: Date }>();
   const [selectionMeta, setSelectionMeta] = useState<SelectedScheduleMeta>();
-  const [schedules, dispatchSchedules] = useReducer(
-    (schedules: Schedule[], action: { type: 'add'; schedule: Schedule }) => {
-      switch (action.type) {
-        case 'add': {
-          return [...schedules, action.schedule];
-        }
-        default:
-          return schedules;
-      }
-    },
-    [],
-  );
   const [dateStartAt, dispatchDate] = useReducer(
     (date: Date | undefined, action: { type: 'reset' } | { type: 'next' } | { type: 'prev' }) => {
       switch (action.type) {
@@ -59,6 +62,48 @@ export default function Home() {
   );
   const [today, setToday] = useState<Date>();
   const [tokenState, refreshToken] = useTokenStore();
+  const {
+    data: schedules = [],
+    mutate: mutateSchedules,
+  } = useSWR(dateStartAt == null ? '' : `/api/schedule/get?startTimestamp=${getUnixTime(dateStartAt)}&endTimestamp=${getUnixTime(addWeeks(dateStartAt, 1))}`, fetcher);
+  const addSchedule = useCallback(
+    async ({ start, end, selectionMeta }: { start: Date; end: Date; selectionMeta: SelectedScheduleMeta }) => {
+      const schedule = {
+        name: selectionMeta.name,
+        start,
+        end,
+        type: ScheduleType.Upcoming,
+      };
+      mutateSchedules((schedules = []) => [...schedules, schedule], false);
+      const { token } = await refreshToken();
+      if (token == null) {
+        console.error(`Token is null`);
+      }
+      const resp = await fetch('/api/schedule/add', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          roomId: 1,
+          reservee: selectionMeta.name,
+          email: selectionMeta.email,
+          phoneNumber: selectionMeta.phoneNumber,
+          reason: selectionMeta.comment,
+          repeats: selectionMeta.repeatCount,
+          startTimestamp: getUnixTime(start),
+          endTimestamp: getUnixTime(end),
+        }),
+      });
+      if (!resp.ok) {
+        console.error(`/api/schedule/add returned status ${resp.status} ${resp.statusText}`);
+      }
+      console.log(await resp.json());
+      mutateSchedules();
+    },
+    [mutateSchedules],
+  );
 
   useEffect(
     () => {
@@ -117,7 +162,7 @@ export default function Home() {
       if (selection == null || selectionMeta == null) return;
 
       const { start, end } = selection;
-      dispatchSchedules({ type: 'add', schedule: { name: selectionMeta.name, start, end, type: ScheduleType.Past } });
+      addSchedule({ start, end, selectionMeta });
     },
     [selection, selectionMeta],
   );
