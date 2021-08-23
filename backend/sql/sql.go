@@ -287,12 +287,12 @@ func (tx *Tx) DeleteScheduleGroup(groupId int64) error {
 	return nil
 }
 
-func (tx *Tx) GetSchedules(startTimestamp int64, endTimestamp int64) ([]*types.Schedule, error) {
+func (tx *Tx) GetSchedules(roomId int64, startTimestamp int64, endTimestamp int64) ([]*types.Schedule, error) {
 	if endTimestamp <= startTimestamp {
 		return nil, errors.New("invalid time range")
 	}
-	query := "select id, room_id, schedule_group_id, extract(epoch from lower(during)), extract(epoch from upper(during)) from schedules where during <@ tstzrange(to_timestamp($1), to_timestamp($2), '[)')"
-	rows, err := tx.tx.Query(query, startTimestamp, endTimestamp)
+	query := "select id, room_id, schedule_group_id, extract(epoch from lower(during)), extract(epoch from upper(during)) from schedules where room_id = $1 and during <@ tstzrange(to_timestamp($2), to_timestamp($3), '[)')"
+	rows, err := tx.tx.Query(query, roomId, startTimestamp, endTimestamp)
 	if err != nil {
 		return nil, err
 	}

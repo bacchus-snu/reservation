@@ -52,6 +52,7 @@ type DeleteScheduleReq struct {
 }
 
 type GetScheduleReq struct {
+	RoomId         int64 `json:"roomId"`
 	StartTimestamp int64 `json:"startTimestamp"`
 	EndTimestamp   int64 `json:"endTimestamp"`
 }
