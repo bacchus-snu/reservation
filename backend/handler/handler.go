@@ -68,6 +68,7 @@ func HandleAddSchedule(w http.ResponseWriter, r *http.Request) {
 			startTs := req.StartTimestamp + (int64(i) * weekSec)
 			endTs := req.EndTimestamp + (int64(i) * weekSec)
 			s := &types.Schedule{
+				RoomId:          req.RoomId,
 				ScheduleGroupId: g.Id,
 				StartTimestamp:  startTs,
 				EndTimestamp:    endTs,
@@ -148,6 +149,11 @@ func HandleDeleteSchedule(w http.ResponseWriter, r *http.Request) {
 func HandleGetSchedule(w http.ResponseWriter, r *http.Request) {
 	var req types.GetScheduleReq
 	qs := r.URL.Query()
+	rid, err := strconv.ParseInt(qs.Get("roomId"), 10, 64)
+	if err != nil {
+		httpError(w, http.StatusBadRequest, "cannot parse query value", err)
+		return
+	}
 	sts, err := strconv.ParseInt(qs.Get("startTimestamp"), 10, 64)
 	if err != nil {
 		httpError(w, http.StatusBadRequest, "cannot parse query value", err)
@@ -158,6 +164,7 @@ func HandleGetSchedule(w http.ResponseWriter, r *http.Request) {
 		httpError(w, http.StatusBadRequest, "cannot parse query value", err)
 		return
 	}
+	req.RoomId = rid
 	req.StartTimestamp = sts
 	req.EndTimestamp = ets
 
@@ -175,7 +182,7 @@ func HandleGetSchedule(w http.ResponseWriter, r *http.Request) {
 	)
 	ctx := context.Background()
 	err = sql.WithTx(ctx, func(tx *sql.Tx) error {
-		schedules_, err := tx.GetSchedules(req.StartTimestamp, req.EndTimestamp)
+		schedules_, err := tx.GetSchedules(req.RoomId, req.StartTimestamp, req.EndTimestamp)
 		if err != nil {
 			return err
 		}
