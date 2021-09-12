@@ -263,7 +263,7 @@ func (tx *Tx) AddScheduleGroup(group *types.ScheduleGroup) error {
 	if group == nil {
 		return errors.New("group is nil")
 	}
-	query := "insert into schedule_groups (room_id, user_idx, reservee, email, phone_number, reason) values ($1, $2, $3, $4, $5) returning id"
+	query := "insert into schedule_groups (room_id, user_idx, reservee, email, phone_number, reason) values ($1, $2, $3, $4, $5, $6) returning id"
 	row := tx.tx.QueryRow(query, group.RoomId, group.UserIdx, group.Reservee, group.Email, group.PhoneNumber, group.Reason)
 	var id int64
 	if err := row.Scan(&id); err != nil {
