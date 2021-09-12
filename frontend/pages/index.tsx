@@ -1,4 +1,4 @@
-import { addWeeks, getUnixTime } from 'date-fns';
+import { addWeeks, fromUnixTime, getUnixTime } from 'date-fns';
 import fetch from 'isomorphic-fetch';
 import Head from 'next/head';
 import { useCallback, useEffect, useReducer, useState } from 'react';
@@ -26,7 +26,13 @@ async function fetcher(key: string): Promise<Schedule[]> {
   }
 
   const data = await resp.json();
-  return data.schedules;
+  const schedules: Schedule[] = data.schedules.map((schedule: any) => ({
+    name: '',
+    start: fromUnixTime(schedule.startTimestamp),
+    end: fromUnixTime(schedule.endTimestamp),
+    type: ScheduleType.Upcoming,
+  }));
+  return schedules;
 }
 
 export default function Home() {
@@ -65,7 +71,7 @@ export default function Home() {
   const {
     data: schedules = [],
     mutate: mutateSchedules,
-  } = useSWR(dateStartAt == null ? '' : `/api/schedule/get?startTimestamp=${getUnixTime(dateStartAt)}&endTimestamp=${getUnixTime(addWeeks(dateStartAt, 1))}`, fetcher);
+  } = useSWR(dateStartAt == null ? '' : `/api/schedule/get?roomId=1&startTimestamp=${getUnixTime(dateStartAt)}&endTimestamp=${getUnixTime(addWeeks(dateStartAt, 1))}`, fetcher);
   const addSchedule = useCallback(
     async ({ start, end, selectionMeta }: { start: Date; end: Date; selectionMeta: SelectedScheduleMeta }) => {
       const schedule = {
@@ -99,7 +105,7 @@ export default function Home() {
       if (!resp.ok) {
         console.error(`/api/schedule/add returned status ${resp.status} ${resp.statusText}`);
       }
-      console.log(await resp.json());
+      console.log(await resp.text());
       mutateSchedules();
     },
     [mutateSchedules],
