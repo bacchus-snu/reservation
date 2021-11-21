@@ -58,6 +58,10 @@ type GetScheduleReq struct {
 	EndTimestamp   int64 `json:"endTimestamp"`
 }
 
+type GetScheduleInfoReq struct {
+	ScheduleGroupId int64 `json:"schedule_group_id"`
+}
+
 type GetScheduleResp struct {
 	Schedules []*Schedule `json:"schedules"`
 }

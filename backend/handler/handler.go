@@ -211,3 +211,51 @@ func HandleGetSchedule(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 }
+
+func HandleGetScheduleInfo(w http.ResponseWriter, r *http.Request) {
+	var p *JWTPayload
+	p, validToken := ParseToken(r)
+	if !validToken {
+		httpError(w, http.StatusUnauthorized, "failed to verify token")
+		return
+	}
+
+	var req types.GetScheduleInfoReq
+	qs := r.URL.Query()
+	sgid, err := strconv.ParseInt(qs.Get("scheduleGroupId"), 10, 64)
+	if err != nil {
+		httpError(w, http.StatusBadRequest, "cannot parse query value", err)
+		return
+	}
+	req.ScheduleGroupId = sgid
+
+	var (
+		resp *types.ScheduleGroup
+	)
+	ctx := context.Background()
+	err = sql.WithTx(ctx, func(tx *sql.Tx) error {
+		scheduleGroup, err := tx.GetScheduleGroupById(req.ScheduleGroupId)
+		if err != nil {
+			return err
+		}
+		if scheduleGroup.UserIdx != int64(p.UserIdx) && !isAdmin(p.PermissionIdx) {
+			return errors.New("you are not the owner of schedule")
+		}
+		resp = scheduleGroup
+		return nil
+	})
+	if err != nil {
+		httpError(w, http.StatusBadRequest, "failed to read schedule", err)
+		return
+	}
+
+	if b, err := json.Marshal(&resp); err != nil {
+		httpError(w, http.StatusInternalServerError, "failed to marshal response", err)
+		return
+	} else {
+		w.WriteHeader(http.StatusOK)
+		if _, err := w.Write(b); err != nil {
+			logrus.WithError(err).Error("failed to write success response")
+		}
+	}
+}

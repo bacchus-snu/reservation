@@ -233,7 +233,7 @@ func (tx *Tx) DeleteRoom(roomId int64) error {
 }
 
 func (tx *Tx) GetScheduleGroupById(id int64) (*types.ScheduleGroup, error) {
-	query := "select room_id, user_idx, reservee, email, phone_number, reason from schedules where id = $1"
+	query := "select room_id, user_idx, reservee, email, phone_number, reason from schedule_groups where id = $1"
 	row := tx.tx.QueryRow(query, id)
 
 	var (
