@@ -27,7 +27,9 @@ async function fetcher(key: string): Promise<Schedule[]> {
 
   const data = await resp.json();
   const schedules: Schedule[] = data.schedules.map((schedule: any) => ({
-    name: '',
+    id: schedule.id,
+    scheduleGroupId: schedule.scheduleGroupId,
+    name: schedule.reservee,
     start: fromUnixTime(schedule.startTimestamp),
     end: fromUnixTime(schedule.endTimestamp),
     type: ScheduleType.Upcoming,
@@ -74,7 +76,7 @@ export default function Home() {
   } = useSWR(dateStartAt == null ? '' : `/api/schedule/get?roomId=1&startTimestamp=${getUnixTime(dateStartAt)}&endTimestamp=${getUnixTime(addWeeks(dateStartAt, 1))}`, fetcher);
   const addSchedule = useCallback(
     async ({ start, end, selectionMeta }: { start: Date; end: Date; selectionMeta: SelectedScheduleMeta }) => {
-      const schedule = {
+      const schedule: Schedule = {
         name: selectionMeta.name,
         start,
         end,
@@ -108,7 +110,7 @@ export default function Home() {
       console.log(await resp.text());
       mutateSchedules();
     },
-    [mutateSchedules],
+    [refreshToken, mutateSchedules],
   );
 
   useEffect(
@@ -170,7 +172,33 @@ export default function Home() {
       const { start, end } = selection;
       addSchedule({ start, end, selectionMeta });
     },
-    [selection, selectionMeta],
+    [addSchedule, selection, selectionMeta],
+  );
+
+  const handleScheduleClick = useCallback(
+    async (schedule: Schedule) => {
+      if (schedule.scheduleGroupId == null) {
+        return;
+      }
+
+      const { token } = await refreshToken();
+      if (token == null) {
+        console.error(`Token is null`);
+      }
+
+      const resp = await fetch(
+        `/api/schedule/info/get?scheduleGroupId=${schedule.scheduleGroupId}`,
+        {
+          method: 'GET',
+          headers: {
+            authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      const data = await resp.json();
+      console.log(data);
+    },
+    [refreshToken],
   );
 
   const handleResetWeek = useCallback(() => dispatchDate({ type: 'reset' }), []);
@@ -228,6 +256,7 @@ export default function Home() {
           onTimeSelectCancel={handleTimeSelectCancel}
           onMetaChange={setSelectionMeta}
           onConfirm={handleConfirm}
+          onScheduleClick={handleScheduleClick}
         />
       </main>
     </div>

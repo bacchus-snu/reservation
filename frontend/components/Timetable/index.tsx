@@ -27,6 +27,7 @@ export type Props = {
   onMetaChange?(meta: SelectedScheduleMeta): void;
   /** 예약하기를 누른 경우 발생하는 이벤트 */
   onConfirm?(): void;
+  onScheduleClick?(schedule: Schedule): void;
 };
 
 const weekdayFormatter = new Intl.DateTimeFormat('ko-KR', { weekday: 'long' });
@@ -74,6 +75,7 @@ export default function Timetable(props: Props) {
     onTimeSelectCancel,
     onMetaChange,
     onConfirm,
+    onScheduleClick,
   } = props;
 
   const sortedSchedules = useMemo(
@@ -180,6 +182,7 @@ export default function Timetable(props: Props) {
         onTimeSelectCancel={onTimeSelectCancel}
         onMetaChange={onMetaChange}
         onConfirm={onConfirm}
+        onScheduleClick={onScheduleClick}
       />
     );
   }

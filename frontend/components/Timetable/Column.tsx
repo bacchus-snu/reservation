@@ -15,6 +15,7 @@ type Props = {
   onTimeSelectCancel?(data: { idx: number }): void;
   onMetaChange?(meta: SelectedScheduleMeta): void;
   onConfirm?(): void;
+  onScheduleClick?(schedule: Schedule): void;
 };
 
 function convertDateToIndex(date: Date): number {
@@ -68,6 +69,7 @@ export default function TimetableColumn(props: Props) {
     onTimeSelectCancel,
     onMetaChange,
     onConfirm,
+    onScheduleClick,
   } = props;
 
   const sortedSchedules = useMemo(
@@ -205,11 +207,18 @@ export default function TimetableColumn(props: Props) {
           bgColor = 'bg-pink-200';
           break;
       }
+
+      const currentSchedule = schedule;
       column.push(
         <div
           key={`schedule-${i}`}
           ref={ref}
-          className={`border-2 border-gray-300 ${bgColor} text-center ${createCell ? 'z-10' : ''} pointer-events-none`}
+          onClick={e => {
+            console.log(currentSchedule);
+            e.stopPropagation();
+            onScheduleClick?.(currentSchedule);
+          }}
+          className={`border-2 border-gray-300 ${bgColor} text-center ${createCell ? 'z-10' : ''} ${schedule.id == null ? 'pointer-events-none' : ''}`}
           style={{ gridColumn: ((columnIdx + 1) * 2 + 1).toString(), gridRow: `${i + 2} / span ${span}` }}
         >
           {schedule.name}

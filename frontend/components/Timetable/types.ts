@@ -1,4 +1,8 @@
 export type Schedule = {
+  /** 일정 ID */
+  id?: number;
+  /** 일정 그룹 ID */
+  scheduleGroupId?: number;
   /** 일정 이름 */
   name: string;
   /** 일정 시작 시각 (0 이상 30 미만) */
