@@ -7,6 +7,9 @@ env:
   DOCKER_BUILDKIT: 1
 jobs:
   build:
+    defaults:
+      run:
+        working-directory: ./frontend
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -30,7 +33,7 @@ jobs:
       - name: Build container image
         run: |
           docker build \
-            --file frontend/Dockerfile \
+            --file Dockerfile \
             --tag frontend \
             --build-arg BUILDKIT_INLINE_CACHE=1 \
             .
