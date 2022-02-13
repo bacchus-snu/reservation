@@ -34,9 +34,10 @@ func main() {
 	r.HandleFunc(wrap("/api/schedule/delete", handler.HandleDeleteSchedule)).Methods("POST")
 	r.HandleFunc(wrap("/api/schedule/get", handler.HandleGetSchedule)).Methods("GET")
 	r.HandleFunc(wrap("/api/schedule/info/get", handler.HandleGetScheduleInfo)).Methods("GET")
-	// rooms
+	// rooms and categories
 	r.HandleFunc(wrap("/api/rooms/get", handler.HandleGetRoomsAndCategories)).Methods("GET")
 	r.HandleFunc(wrap("/api/rooms/add", handler.HandleAddRoom)).Methods("POST")
+	r.HandleFunc(wrap("/api/categories/add", handler.HandleAddCategory)).Methods("POST")
 
 	server := &http.Server{
 		Addr:         config.Config.ListenAddr,

@@ -76,3 +76,8 @@ type AddRoomReq struct {
 	Seats      int    `json:"seats"`
 	CategoryId int64  `json:"categoryId"`
 }
+
+type AddCategoryReq struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
