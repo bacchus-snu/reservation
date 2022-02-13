@@ -11,9 +11,18 @@ import { getPayloadFromToken, useTokenStore } from '../components/Token';
 
 function getStartOfWeek(now: Date): Date {
   const ret = new Date(now);
-  let weekday = now.getDay();
+  // make UTC+9
+  ret.setUTCHours(ret.getUTCHours() + 9);
+
+  let weekday = now.getUTCDay();
   if (weekday === 0) weekday = 7;
-  ret.setDate(now.getDate() - (weekday - 1));
+  ret.setUTCDate(now.getUTCDate() - (weekday - 1));
+
+  // reset timezone, 00:00:00
+  ret.setUTCMilliseconds(0);
+  ret.setUTCSeconds(0);
+  ret.setUTCMinutes(0);
+  ret.setUTCHours(-9);
   return ret;
 }
 
