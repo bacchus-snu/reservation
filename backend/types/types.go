@@ -65,3 +65,8 @@ type GetScheduleInfoReq struct {
 type GetScheduleResp struct {
 	Schedules []*Schedule `json:"schedules"`
 }
+
+type GetRoomsAndCategoriesResp struct {
+	Categories []*Category `json:"categories"`
+	Rooms      []*Room     `json:"rooms"`
+}

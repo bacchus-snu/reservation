@@ -29,10 +29,13 @@ func main() {
 
 	// http handler
 	r := mux.NewRouter()
+	// schedules
 	r.HandleFunc(wrap("/api/schedule/add", handler.HandleAddSchedule)).Methods("POST")
 	r.HandleFunc(wrap("/api/schedule/delete", handler.HandleDeleteSchedule)).Methods("POST")
 	r.HandleFunc(wrap("/api/schedule/get", handler.HandleGetSchedule)).Methods("GET")
 	r.HandleFunc(wrap("/api/schedule/info/get", handler.HandleGetScheduleInfo)).Methods("GET")
+	// rooms
+	r.HandleFunc(wrap("/api/rooms/get", handler.HandleGetRoomsAndCategories)).Methods("GET")
 
 	server := &http.Server{
 		Addr:         config.Config.ListenAddr,

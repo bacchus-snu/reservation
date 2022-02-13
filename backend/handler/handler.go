@@ -259,3 +259,38 @@ func HandleGetScheduleInfo(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 }
+
+func HandleGetRoomsAndCategories(w http.ResponseWriter, r *http.Request) {
+	var (
+		resp *types.GetRoomsAndCategoriesResp
+	)
+	ctx := context.Background()
+	err := sql.WithTx(ctx, func(tx *sql.Tx) error {
+		categories, err := tx.GetAllCategories()
+		if err != nil {
+			return err
+		}
+		rooms, err := tx.GetAllRooms()
+		if err != nil {
+			return err
+		}
+
+		resp.Categories = categories
+		resp.Rooms = rooms
+		return nil
+	})
+	if err != nil {
+		httpError(w, http.StatusBadRequest, "failed to get rooms and categories", err)
+		return
+	}
+
+	if b, err := json.Marshal(&resp); err != nil {
+		httpError(w, http.StatusInternalServerError, "failed to marshal response", err)
+		return
+	} else {
+		w.WriteHeader(http.StatusOK)
+		if _, err := w.Write(b); err != nil {
+			logrus.WithError(err).Error("failed to write success response")
+		}
+	}
+}
