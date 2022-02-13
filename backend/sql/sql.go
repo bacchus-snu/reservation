@@ -233,7 +233,7 @@ func (tx *Tx) DeleteRoom(roomId int64) error {
 }
 
 func (tx *Tx) GetScheduleGroupById(id int64) (*types.ScheduleGroup, error) {
-	query := "select room_id, user_idx, reservee, email, phone_number, reason from schedules where id = $1"
+	query := "select room_id, user_idx, reservee, email, phone_number, reason from schedule_groups where id = $1"
 	row := tx.tx.QueryRow(query, id)
 
 	var (
@@ -291,7 +291,12 @@ func (tx *Tx) GetSchedules(roomId int64, startTimestamp int64, endTimestamp int6
 	if endTimestamp <= startTimestamp {
 		return nil, errors.New("invalid time range")
 	}
-	query := "select id, room_id, schedule_group_id, extract(epoch from lower(during)), extract(epoch from upper(during)) from schedules where room_id = $1 and during <@ tstzrange(to_timestamp($2), to_timestamp($3), '[)')"
+	query := `
+select s.id, s.room_id, s.schedule_group_id, sg.reservee, extract(epoch from lower(s.during))::bigint, extract(epoch from upper(s.during))::bigint
+from schedules s
+inner join schedule_groups sg on (s.schedule_group_id = sg.id)
+where s.room_id = $1 and s.during <@ tstzrange(to_timestamp($2), to_timestamp($3), '[)')
+`
 	rows, err := tx.tx.Query(query, roomId, startTimestamp, endTimestamp)
 	if err != nil {
 		return nil, err
@@ -303,10 +308,11 @@ func (tx *Tx) GetSchedules(roomId int64, startTimestamp int64, endTimestamp int6
 			id              int64
 			roomId          int64
 			scheduleGroupId int64
+			reservee        string
 			startTimestamp  int64
 			endTimestamp    int64
 		)
-		if err := rows.Scan(&id, &roomId, &scheduleGroupId, &startTimestamp, &endTimestamp); err != nil {
+		if err := rows.Scan(&id, &roomId, &scheduleGroupId, &reservee, &startTimestamp, &endTimestamp); err != nil {
 			if err := rows.Close(); err != nil {
 				return nil, err
 			}
@@ -316,6 +322,7 @@ func (tx *Tx) GetSchedules(roomId int64, startTimestamp int64, endTimestamp int6
 			Id:              id,
 			RoomId:          roomId,
 			ScheduleGroupId: scheduleGroupId,
+			Reservee:        reservee,
 			StartTimestamp:  startTimestamp,
 			EndTimestamp:    endTimestamp,
 		}
@@ -329,7 +336,7 @@ func (tx *Tx) GetSchedules(roomId int64, startTimestamp int64, endTimestamp int6
 }
 
 func (tx *Tx) GetScheduleById(id int64) (*types.Schedule, error) {
-	query := "select room_id, schedule_group_id, extract(epoch from lower(during)), extract(epoch from upper(during)) from schedules where id = $1"
+	query := "select room_id, schedule_group_id, extract(epoch from lower(during))::bigint, extract(epoch from upper(during))::bigint from schedules where id = $1"
 	row := tx.tx.QueryRow(query, id)
 
 	var (

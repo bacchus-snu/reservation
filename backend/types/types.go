@@ -24,11 +24,12 @@ type ScheduleGroup struct {
 }
 
 type Schedule struct {
-	Id              int64 `json:"id"`
-	RoomId          int64 `json:"roomId"`
-	ScheduleGroupId int64 `json:"scheduleGroupId"`
-	StartTimestamp  int64 `json:"startTimestamp"`
-	EndTimestamp    int64 `json:"endTimestamp"`
+	Id              int64  `json:"id"`
+	RoomId          int64  `json:"roomId"`
+	ScheduleGroupId int64  `json:"scheduleGroupId"`
+	Reservee        string `json:"reservee"`
+	StartTimestamp  int64  `json:"startTimestamp"`
+	EndTimestamp    int64  `json:"endTimestamp"`
 }
 
 type ErrorResp struct {
@@ -55,6 +56,10 @@ type GetScheduleReq struct {
 	RoomId         int64 `json:"roomId"`
 	StartTimestamp int64 `json:"startTimestamp"`
 	EndTimestamp   int64 `json:"endTimestamp"`
+}
+
+type GetScheduleInfoReq struct {
+	ScheduleGroupId int64 `json:"schedule_group_id"`
 }
 
 type GetScheduleResp struct {
