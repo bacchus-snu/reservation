@@ -36,6 +36,7 @@ func main() {
 	r.HandleFunc(wrap("/api/schedule/info/get", handler.HandleGetScheduleInfo)).Methods("GET")
 	// rooms
 	r.HandleFunc(wrap("/api/rooms/get", handler.HandleGetRoomsAndCategories)).Methods("GET")
+	r.HandleFunc(wrap("/api/rooms/add", handler.HandleAddRoom)).Methods("POST")
 
 	server := &http.Server{
 		Addr:         config.Config.ListenAddr,

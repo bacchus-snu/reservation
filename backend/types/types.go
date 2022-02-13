@@ -70,3 +70,9 @@ type GetRoomsAndCategoriesResp struct {
 	Categories []*Category `json:"categories"`
 	Rooms      []*Room     `json:"rooms"`
 }
+
+type AddRoomReq struct {
+	Name       string `json:"name"`
+	Seats      int    `json:"seats"`
+	CategoryId int64  `json:"categoryId"`
+}
