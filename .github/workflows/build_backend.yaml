@@ -41,5 +41,5 @@ jobs:
 
       - name: Push
         run: |
-          docker tag backend 642254835236.dkr.ecr.ap-northeast-2.amazonaws.com/bacchus-reservation/backend:${GITHUB_REF_NAME}
-          docker --config .docker push 642254835236.dkr.ecr.ap-northeast-2.amazonaws.com/bacchus-reservation/backend:${GITHUB_REF_NAME}
+          docker tag backend 642254835236.dkr.ecr.ap-northeast-2.amazonaws.com/bacchus-reservation/backend:${GITHUB_REF##*/}
+          docker --config .docker push 642254835236.dkr.ecr.ap-northeast-2.amazonaws.com/bacchus-reservation/backend:${GITHUB_REF##*/}
