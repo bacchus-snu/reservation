@@ -1,6 +1,7 @@
 name: Build backend
 on:
   push:
+    - 'main'
   pull_request:
 env:
   DOCKER_BUILDKIT: 1
