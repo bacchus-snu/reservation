@@ -49,7 +49,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["react", "npm:17.0.2"],
             ["react-dom", "virtual:05af16f6f013f87e90e07f057f0ff5bd3aa545be79e40a04977e5474b9f231d02da46aa5a866c1f73e0619f2991ebf89379152a17812c797778e89d370314f30#npm:17.0.2"],
             ["react-popper", "virtual:05af16f6f013f87e90e07f057f0ff5bd3aa545be79e40a04977e5474b9f231d02da46aa5a866c1f73e0619f2991ebf89379152a17812c797778e89d370314f30#npm:2.2.5"],
-            ["swr", "virtual:05af16f6f013f87e90e07f057f0ff5bd3aa545be79e40a04977e5474b9f231d02da46aa5a866c1f73e0619f2991ebf89379152a17812c797778e89d370314f30#npm:1.2.1"],
+            ["swr", "virtual:05af16f6f013f87e90e07f057f0ff5bd3aa545be79e40a04977e5474b9f231d02da46aa5a866c1f73e0619f2991ebf89379152a17812c797778e89d370314f30#npm:1.1.2"],
             ["tailwindcss", "virtual:05af16f6f013f87e90e07f057f0ff5bd3aa545be79e40a04977e5474b9f231d02da46aa5a866c1f73e0619f2991ebf89379152a17812c797778e89d370314f30#npm:3.0.22"],
             ["typescript", "patch:typescript@npm%3A4.5.5#~builtin<compat/typescript>::version=4.5.5&hash=493e53"]
           ],
@@ -846,7 +846,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["react", "npm:17.0.2"],
             ["react-dom", "virtual:05af16f6f013f87e90e07f057f0ff5bd3aa545be79e40a04977e5474b9f231d02da46aa5a866c1f73e0619f2991ebf89379152a17812c797778e89d370314f30#npm:17.0.2"],
             ["react-popper", "virtual:05af16f6f013f87e90e07f057f0ff5bd3aa545be79e40a04977e5474b9f231d02da46aa5a866c1f73e0619f2991ebf89379152a17812c797778e89d370314f30#npm:2.2.5"],
-            ["swr", "virtual:05af16f6f013f87e90e07f057f0ff5bd3aa545be79e40a04977e5474b9f231d02da46aa5a866c1f73e0619f2991ebf89379152a17812c797778e89d370314f30#npm:1.2.1"],
+            ["swr", "virtual:05af16f6f013f87e90e07f057f0ff5bd3aa545be79e40a04977e5474b9f231d02da46aa5a866c1f73e0619f2991ebf89379152a17812c797778e89d370314f30#npm:1.1.2"],
             ["tailwindcss", "virtual:05af16f6f013f87e90e07f057f0ff5bd3aa545be79e40a04977e5474b9f231d02da46aa5a866c1f73e0619f2991ebf89379152a17812c797778e89d370314f30#npm:3.0.22"],
             ["typescript", "patch:typescript@npm%3A4.5.5#~builtin<compat/typescript>::version=4.5.5&hash=493e53"]
           ],
@@ -4174,17 +4174,17 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]
       ]],
       ["swr", [
-        ["npm:1.2.1", {
-          "packageLocation": "./.yarn/cache/swr-npm-1.2.1-77baba2d66-87f6093f46.zip/node_modules/swr/",
+        ["npm:1.1.2", {
+          "packageLocation": "./.yarn/cache/swr-npm-1.1.2-8ec1c9a7ac-84bf222c66.zip/node_modules/swr/",
           "packageDependencies": [
-            ["swr", "npm:1.2.1"]
+            ["swr", "npm:1.1.2"]
           ],
           "linkType": "SOFT",
         }],
-        ["virtual:05af16f6f013f87e90e07f057f0ff5bd3aa545be79e40a04977e5474b9f231d02da46aa5a866c1f73e0619f2991ebf89379152a17812c797778e89d370314f30#npm:1.2.1", {
-          "packageLocation": "./.yarn/__virtual__/swr-virtual-2ad9e6e897/0/cache/swr-npm-1.2.1-77baba2d66-87f6093f46.zip/node_modules/swr/",
+        ["virtual:05af16f6f013f87e90e07f057f0ff5bd3aa545be79e40a04977e5474b9f231d02da46aa5a866c1f73e0619f2991ebf89379152a17812c797778e89d370314f30#npm:1.1.2", {
+          "packageLocation": "./.yarn/__virtual__/swr-virtual-3db45cc207/0/cache/swr-npm-1.1.2-8ec1c9a7ac-84bf222c66.zip/node_modules/swr/",
           "packageDependencies": [
-            ["swr", "virtual:05af16f6f013f87e90e07f057f0ff5bd3aa545be79e40a04977e5474b9f231d02da46aa5a866c1f73e0619f2991ebf89379152a17812c797778e89d370314f30#npm:1.2.1"],
+            ["swr", "virtual:05af16f6f013f87e90e07f057f0ff5bd3aa545be79e40a04977e5474b9f231d02da46aa5a866c1f73e0619f2991ebf89379152a17812c797778e89d370314f30#npm:1.1.2"],
             ["@types/react", "npm:17.0.14"],
             ["react", "npm:17.0.2"]
           ],

@@ -657,7 +657,7 @@ __metadata:
     react: ^17.0.2
     react-dom: ^17.0.2
     react-popper: ^2.2.5
-    swr: ^1.2.1
+    swr: =1.1.2
     tailwindcss: ^3.0.22
     typescript: ^4.5.5
   languageName: unknown
@@ -3511,12 +3511,12 @@ resolve@^2.0.0-next.3:
   languageName: node
   linkType: hard
 
-"swr@npm:^1.2.1":
-  version: 1.2.1
-  resolution: "swr@npm:1.2.1"
+"swr@npm:=1.1.2":
+  version: 1.1.2
+  resolution: "swr@npm:1.1.2"
   peerDependencies:
     react: ^16.11.0 || ^17.0.0 || ^18.0.0
-  checksum: 87f6093f468dc76f31d7dc7bdd8f925cd9d8a8e8062eecaf6e17ba4ffeb4d5aebe01e73e0cf30ef0e913121f630c33e393eeff8aab6e5479cb3291cd7f2d7dca
+  checksum: 84bf222c667bf4f94bf9bcaf51f11443d69eb6feb82649c06ef8e576c51f52269872dbda4b926f267fd79cfeaf7bd84c6a62d519db25fe2af1fb811e75163e94
   languageName: node
   linkType: hard
 
