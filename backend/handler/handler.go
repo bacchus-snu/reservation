@@ -385,3 +385,44 @@ func HandleAddCategory(w http.ResponseWriter, r *http.Request) {
 		logrus.WithError(err).Error("failed to write success response")
 	}
 }
+
+func HandleDeleteRoom(w http.ResponseWriter, r *http.Request) {
+	var p *JWTPayload
+	p, validToken := ParseToken(r)
+	if !validToken {
+		httpError(w, http.StatusUnauthorized, "failed to verify token")
+		return
+	}
+	if !isAdmin(p.PermissionIdx) {
+		httpError(w, http.StatusUnauthorized, "admin only")
+	}
+
+	b, err := io.ReadAll(r.Body)
+	if err != nil {
+		httpError(w, http.StatusBadRequest, "failed to read req body", err)
+		return
+	}
+
+	var req types.DeleteRoomReq
+	if err := json.NewDecoder(bytes.NewReader(b)).Decode(&req); err != nil {
+		httpError(w, http.StatusBadRequest, "failed to deserialize req body", err)
+		return
+	}
+
+	ctx := context.Background()
+	err = sql.WithTx(ctx, func(tx *sql.Tx) error {
+		if err := tx.DeleteRoom(req.RoomId); err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		httpError(w, http.StatusBadRequest, "failed to delete room", err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	if _, err := w.Write(b); err != nil {
+		logrus.WithError(err).Error("failed to write success response")
+	}
+}

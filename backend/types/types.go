@@ -81,3 +81,7 @@ type AddCategoryReq struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 }
+
+type DeleteRoomReq struct {
+	RoomId int64 `json:"roomId"`
+}

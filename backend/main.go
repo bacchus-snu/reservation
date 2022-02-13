@@ -37,6 +37,7 @@ func main() {
 	// rooms and categories
 	r.HandleFunc(wrap("/api/rooms/get", handler.HandleGetRoomsAndCategories)).Methods("GET")
 	r.HandleFunc(wrap("/api/rooms/add", handler.HandleAddRoom)).Methods("POST")
+	r.HandleFunc(wrap("/api/rooms/delete", handler.HandleDeleteRoom)).Methods("POST")
 	r.HandleFunc(wrap("/api/categories/add", handler.HandleAddCategory)).Methods("POST")
 
 	server := &http.Server{
