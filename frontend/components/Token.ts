@@ -113,9 +113,13 @@ export class TokenStore {
       this.broadcastStateUpdate(state);
       return state;
     } catch (e) {
+      if (e instanceof Error) {
+        this.error = e;
+      } else {
+        this.error = new Error(String(e));
+      }
       this.loading = false;
-      this.error = e;
-      state = { ...state, loading: false, error: e };
+      state = { ...state, loading: false, error: this.error };
       this.broadcastStateUpdate(state);
       return state;
     }

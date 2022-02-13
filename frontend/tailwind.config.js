@@ -1,6 +1,5 @@
 module.exports = {
-  purge: ['./pages/**/*.{ts,tsx}', './components/**/*.{ts,tsx}'],
-  darkMode: false,
+  content: ['./pages/**/*.{ts,tsx}', './components/**/*.{ts,tsx}'],
   theme: {
     extend: {
       gridTemplateColumns: {
@@ -10,9 +9,6 @@ module.exports = {
         timetable: 'minmax(3rem, max-content) repeat(30, 1.5rem)',
       },
     },
-  },
-  variants: {
-    extend: {},
   },
   plugins: [],
 }
