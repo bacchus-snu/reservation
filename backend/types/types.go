@@ -85,3 +85,7 @@ type AddCategoryReq struct {
 type DeleteRoomReq struct {
 	RoomId int64 `json:"roomId"`
 }
+
+type DeleteCategoryReq struct {
+	CategoryId int64 `json:"categoryId"`
+}

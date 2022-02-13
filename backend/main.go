@@ -39,6 +39,7 @@ func main() {
 	r.HandleFunc(wrap("/api/rooms/add", handler.HandleAddRoom)).Methods("POST")
 	r.HandleFunc(wrap("/api/rooms/delete", handler.HandleDeleteRoom)).Methods("POST")
 	r.HandleFunc(wrap("/api/categories/add", handler.HandleAddCategory)).Methods("POST")
+	r.HandleFunc(wrap("/api/categories/delete", handler.HandleDeleteCategory)).Methods("POST")
 
 	server := &http.Server{
 		Addr:         config.Config.ListenAddr,
