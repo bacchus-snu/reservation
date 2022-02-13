@@ -1,134 +1,10 @@
-import { addWeeks, fromUnixTime, getUnixTime } from 'date-fns';
-import fetch from 'isomorphic-fetch';
 import Head from 'next/head';
-import { useCallback, useEffect, useReducer, useState } from 'react';
-import useSWR from 'swr';
+import { useEffect } from 'react';
 
-import Timetable from '../components/Timetable';
-import { ScheduleType } from '../components/Timetable/types';
-import type { Schedule, SelectedScheduleMeta } from '../components/Timetable/types';
-import { getPayloadFromToken, useTokenStore } from '../components/Token';
-
-function getStartOfWeek(now: Date): Date {
-  const ret = new Date(now);
-  // make UTC+9
-  ret.setUTCHours(ret.getUTCHours() + 9);
-
-  let weekday = now.getUTCDay();
-  if (weekday === 0) weekday = 7;
-  ret.setUTCDate(now.getUTCDate() - (weekday - 1));
-
-  // reset timezone, 00:00:00
-  ret.setUTCMilliseconds(0);
-  ret.setUTCSeconds(0);
-  ret.setUTCMinutes(0);
-  ret.setUTCHours(-9);
-  return ret;
-}
-
-async function fetcher(key: string): Promise<Schedule[]> {
-  if (key === '') return [];
-
-  const resp = await fetch(key);
-  if (resp.status !== 200) {
-    throw new Error(`${key} returned status ${resp.status} ${resp.statusText}`);
-  }
-
-  const data = await resp.json();
-  const schedules: Schedule[] = data.schedules.map((schedule: any) => ({
-    id: schedule.id,
-    scheduleGroupId: schedule.scheduleGroupId,
-    name: schedule.reservee,
-    start: fromUnixTime(schedule.startTimestamp),
-    end: fromUnixTime(schedule.endTimestamp),
-    type: ScheduleType.Upcoming,
-  }));
-  return schedules;
-}
+import { getPayloadFromToken, useTokenStore } from 'components/Token';
 
 export default function Home() {
-  const [selectInProgress, setSelectInProgress] = useState<boolean>(false);
-  const [selection, setSelection] = useState<{ start: Date, end: Date }>();
-  const [selectionMeta, setSelectionMeta] = useState<SelectedScheduleMeta>();
-  const [dateStartAt, dispatchDate] = useReducer(
-    (date: Date | undefined, action: { type: 'reset' } | { type: 'next' } | { type: 'prev' }) => {
-      switch (action.type) {
-        case 'reset':
-          return getStartOfWeek(new Date());
-        case 'next': {
-          if (date == null) {
-            return date;
-          }
-          const ret = new Date(date);
-          ret.setDate(ret.getDate() + 7);
-          return ret;
-        }
-        case 'prev': {
-          if (date == null) {
-            return date;
-          }
-          const ret = new Date(date);
-          ret.setDate(ret.getDate() - 7);
-          return ret;
-        }
-        default:
-          return date;
-      }
-    },
-    undefined,
-  );
-  const [today, setToday] = useState<Date>();
   const [tokenState, refreshToken] = useTokenStore();
-  const {
-    data: schedules = [],
-    mutate: mutateSchedules,
-  } = useSWR(dateStartAt == null ? '' : `/api/schedule/get?roomId=1&startTimestamp=${getUnixTime(dateStartAt)}&endTimestamp=${getUnixTime(addWeeks(dateStartAt, 1))}`, fetcher);
-  const addSchedule = useCallback(
-    async ({ start, end, selectionMeta }: { start: Date; end: Date; selectionMeta: SelectedScheduleMeta }) => {
-      const schedule: Schedule = {
-        name: selectionMeta.name,
-        start,
-        end,
-        type: ScheduleType.Upcoming,
-      };
-      mutateSchedules((schedules = []) => [...schedules, schedule], false);
-      const { token } = await refreshToken();
-      if (token == null) {
-        console.error(`Token is null`);
-      }
-      const resp = await fetch('/api/schedule/add', {
-        method: 'POST',
-        headers: {
-          'content-type': 'application/json',
-          authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          roomId: 1,
-          reservee: selectionMeta.name,
-          email: selectionMeta.email,
-          phoneNumber: selectionMeta.phoneNumber,
-          reason: selectionMeta.comment,
-          repeats: selectionMeta.repeatCount,
-          startTimestamp: getUnixTime(start),
-          endTimestamp: getUnixTime(end),
-        }),
-      });
-      if (!resp.ok) {
-        console.error(`/api/schedule/add returned status ${resp.status} ${resp.statusText}`);
-      }
-      console.log(await resp.text());
-      mutateSchedules();
-    },
-    [refreshToken, mutateSchedules],
-  );
-
-  useEffect(
-    () => {
-      setToday(new Date());
-      dispatchDate({ type: 'reset' });
-    },
-    [],
-  );
 
   useEffect(
     () => {
@@ -137,92 +13,7 @@ export default function Home() {
     [refreshToken],
   );
 
-  const handleTimeSelectUpdate = useCallback(
-    data => {
-      setSelectInProgress(true);
-      setSelection(data);
-    },
-    [],
-  );
-
-  const handleTimeSelectDone = useCallback(
-    data => {
-      setSelectInProgress(false);
-      if (Number(data.start) > Date.now()) {
-        setSelectionMeta({
-          name: '',
-          repeatCount: 1,
-          email: '',
-          phoneNumber: '',
-          comment: '',
-        });
-        setSelection(data);
-      } else {
-        setSelectionMeta(undefined);
-        setSelection(undefined);
-      }
-    },
-    [],
-  );
-
-  const handleTimeSelectCancel = useCallback(
-    () => {
-      setSelectInProgress(false);
-      setSelectionMeta(undefined);
-      setSelection(undefined);
-    },
-    [],
-  );
-
-  const handleConfirm = useCallback(
-    () => {
-      if (selection == null || selectionMeta == null) return;
-
-      const { start, end } = selection;
-      addSchedule({ start, end, selectionMeta });
-    },
-    [addSchedule, selection, selectionMeta],
-  );
-
-  const handleScheduleClick = useCallback(
-    async (schedule: Schedule) => {
-      if (schedule.scheduleGroupId == null) {
-        return;
-      }
-
-      const { token } = await refreshToken();
-      if (token == null) {
-        console.error(`Token is null`);
-      }
-
-      const resp = await fetch(
-        `/api/schedule/info/get?scheduleGroupId=${schedule.scheduleGroupId}`,
-        {
-          method: 'GET',
-          headers: {
-            authorization: `Bearer ${token}`,
-          },
-        },
-      );
-      const data = await resp.json();
-      console.log(data);
-    },
-    [refreshToken],
-  );
-
-  const handleResetWeek = useCallback(() => dispatchDate({ type: 'reset' }), []);
-  const handleNextWeek = useCallback(() => dispatchDate({ type: 'next' }), []);
-  const handlePrevWeek = useCallback(() => dispatchDate({ type: 'prev' }), []);
-
   const payload = tokenState.token == null ? null : getPayloadFromToken(tokenState.token);
-
-  const schedulesWithSel = [...schedules];
-  if (selection != null) {
-    const type = selectInProgress ? ScheduleType.Selecting : ScheduleType.Selected;
-    const { start, end } = selection;
-    schedulesWithSel.push({ name: '', start, end, type });
-  }
-
   let loginState: React.ReactNode = null;
   if (tokenState.loading) {
     loginState = '...';
@@ -248,25 +39,9 @@ export default function Home() {
       <main className="py-20 space-y-2">
         <div className="flex flex-row justify-between items-baseline">
           <div className="flex flex-row space-x-2">
-            <button className="px-2 py-0.5 border rounded" onClick={handleResetWeek}>오늘</button>
-            <button className="px-2 py-0.5 border rounded" onClick={handlePrevWeek}>{'<'}</button>
-            <button className="px-2 py-0.5 border rounded" onClick={handleNextWeek}>{'>'}</button>
           </div>
           <div>{loginState}</div>
         </div>
-        <Timetable
-          disabled={!(tokenState.token != null && tokenState.error == null)}
-          dateStartAt={dateStartAt}
-          today={today}
-          schedules={schedulesWithSel}
-          selectedMeta={selectionMeta}
-          onTimeSelectUpdate={handleTimeSelectUpdate}
-          onTimeSelectDone={handleTimeSelectDone}
-          onTimeSelectCancel={handleTimeSelectCancel}
-          onMetaChange={setSelectionMeta}
-          onConfirm={handleConfirm}
-          onScheduleClick={handleScheduleClick}
-        />
       </main>
     </div>
   );
