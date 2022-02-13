@@ -1,2 +1,6 @@
-/.yarn/releases/** binary
-/.yarn/plugins/** binary
+.yarn/releases/** binary
+.yarn/plugins/** binary
+.yarn/sdks/** binary
+.pnp.cjs linguist-generated=true
+.pnp.loader.mjs linguist-generated=true
+.yarn.lock linguist-generated=true
