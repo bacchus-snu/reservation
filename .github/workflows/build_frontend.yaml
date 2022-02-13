@@ -1,0 +1,42 @@
+name: Build frontend
+on:
+  push:
+    branches:
+      - 'main'
+env:
+  DOCKER_BUILDKIT: 1
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Adjust concurrent download limit
+        run: |
+          echo '{"max-concurrent-uploads": 20,"max-concurrent-downloads": 20}' | sudo tee /etc/docker/daemon.json
+          sudo systemctl restart docker
+
+      - name: Login to ECR
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          mkdir -p .docker
+          docker run --rm -e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY amazon/aws-cli \
+            ecr get-login-password --region ap-northeast-2 \
+            | docker --config .docker login --username AWS --password-stdin 642254835236.dkr.ecr.ap-northeast-2.amazonaws.com
+
+
+      - name: Build container image
+        run: |
+          docker build \
+            --file frontend/Dockerfile \
+            --tag frontend \
+            --build-arg BUILDKIT_INLINE_CACHE=1 \
+            .
+
+      - name: Push
+        if: github.ref == 'refs/heads/main'
+        run: |
+          docker tag frontend 642254835236.dkr.ecr.ap-northeast-2.amazonaws.com/bacchus-reservation/frontend:${GITHUB_SHA}
+          docker --config .docker push 642254835236.dkr.ecr.ap-northeast-2.amazonaws.com/bacchus-reservation/frontend:${GITHUB_SHA}
