@@ -1,17 +1,9 @@
 import Head from 'next/head';
-import { useEffect } from 'react';
 
 import { getPayloadFromToken, useTokenStore } from 'components/Token';
 
 export default function Home() {
-  const [tokenState, refreshToken] = useTokenStore();
-
-  useEffect(
-    () => {
-      refreshToken().catch(console.error);
-    },
-    [refreshToken],
-  );
+  const [tokenState] = useTokenStore();
 
   const payload = tokenState.token == null ? null : getPayloadFromToken(tokenState.token);
   let loginState: React.ReactNode = null;
