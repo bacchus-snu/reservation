@@ -82,7 +82,7 @@ export default function Room() {
     undefined,
   );
   const [today, setToday] = useState<Date>();
-  const [tokenState, refreshToken] = useTokenStore();
+  const [tokenState] = useTokenStore();
   const {
     data: schedules = [],
     mutate: mutateSchedules,
@@ -96,7 +96,7 @@ export default function Room() {
         type: ScheduleType.Upcoming,
       };
       mutateSchedules((schedules = []) => [...schedules, schedule], false);
-      const { token } = await refreshToken();
+      const { token } = tokenState;
       if (token == null) {
         console.error(`Token is null`);
       }
@@ -123,7 +123,7 @@ export default function Room() {
       console.log(await resp.text());
       mutateSchedules();
     },
-    [refreshToken, roomId, mutateSchedules],
+    [roomId, tokenState, mutateSchedules],
   );
 
   useEffect(
@@ -132,13 +132,6 @@ export default function Room() {
       dispatchDate({ type: 'reset' });
     },
     [],
-  );
-
-  useEffect(
-    () => {
-      refreshToken().catch(console.error);
-    },
-    [refreshToken],
   );
 
   const handleTimeSelectUpdate = useCallback(
@@ -194,7 +187,7 @@ export default function Room() {
         return;
       }
 
-      const { token } = await refreshToken();
+      const { token } = tokenState;
       if (token == null) {
         console.error(`Token is null`);
       }
@@ -211,7 +204,7 @@ export default function Room() {
       const data = await resp.json();
       console.log(data);
     },
-    [refreshToken],
+    [tokenState],
   );
 
   const handleResetWeek = useCallback(() => dispatchDate({ type: 'reset' }), []);
