@@ -174,6 +174,7 @@ export default function Timetable(props: Props) {
       <TimetableColumn
         key={i}
         idx={i}
+        disabled={disabled}
         heading={heading}
         schedules={schedules}
         selectedMeta={selectedMeta}
