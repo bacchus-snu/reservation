@@ -57,15 +57,15 @@ export default function InteractiveTimetable(props: Props) {
 
   const handleResetWeek = useCallback(
     () => today && onDateUpdate?.(getStartOfWeek(today)),
-    [onDateUpdate],
+    [today, onDateUpdate],
   );
   const handleNextWeek = useCallback(
     () => dateStartAt && onDateUpdate?.(addWeeks(dateStartAt, 1)),
-    [onDateUpdate],
+    [dateStartAt, onDateUpdate],
   );
   const handlePrevWeek = useCallback(
     () => dateStartAt && onDateUpdate?.(subWeeks(dateStartAt, 1)),
-    [onDateUpdate],
+    [dateStartAt, onDateUpdate],
   );
 
   const handleTimeSelectDone = useCallback(
@@ -83,7 +83,7 @@ export default function InteractiveTimetable(props: Props) {
         onSelectionCancel?.();
       }
     },
-    [],
+    [onSelectionMetaUpdate, onSelectionUpdate, onSelectionCancel],
   );
 
   const schedulesWithSel = [...schedules];
