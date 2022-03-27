@@ -1,0 +1,44 @@
+name: Test backend
+
+on:
+  push:
+    branches:
+      - 'main'
+  pull_request:
+
+jobs:
+  test-backend:
+    defaults:
+      run:
+        working-directory: ./backend
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:13-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: reservation
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout 
+        uses: actions/checkout@v2
+      - name: Setup go environment
+        uses: actions/setup-go@v2
+        with:
+          go-version: '^1.18.0'
+      - name: Create postgres password file
+        run: |
+          echo "localhost:5432:reservation:postgres:postgres" > ~/.pgpass
+          chmod 0600 ~/.pgpass
+      - name: Create tables
+        run: psql -h localhost -U postgres reservation < tables.sql
+      - name: Run tests
+        run: go test -v ./...
+        env:
+          SQL_USERNAME: postgres
+          SQL_PASSWORD: postgres
+          IS_TEST: true
