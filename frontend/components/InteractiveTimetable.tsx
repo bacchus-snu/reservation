@@ -1,5 +1,5 @@
 import { addWeeks, subWeeks } from 'date-fns';
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 
 import Timetable from './Timetable';
 import { ScheduleType } from './Timetable/types';
@@ -67,6 +67,12 @@ export default function InteractiveTimetable(props: Props) {
     () => dateStartAt && onDateUpdate?.(subWeeks(dateStartAt, 1)),
     [dateStartAt, onDateUpdate],
   );
+
+  useEffect(() => {
+    if (dateStartAt == null) {
+      today && onDateUpdate?.(getStartOfWeek(today));
+    }
+  }, [today, dateStartAt]);
 
   const handleTimeSelectDone = useCallback(
     data => {
