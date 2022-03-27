@@ -53,6 +53,7 @@ export default function InteractiveTimetable(props: Props) {
     onSelectionMetaUpdate,
     onSelectionCancel,
     onAddSchedule,
+    onScheduleClick,
   } = props;
 
   const handleResetWeek = useCallback(
@@ -120,7 +121,7 @@ export default function InteractiveTimetable(props: Props) {
         onTimeSelectCancel={onSelectionCancel}
         onMetaChange={onSelectionMetaUpdate}
         onConfirm={onAddSchedule}
-        onScheduleClick={undefined}
+        onScheduleClick={onScheduleClick}
       />
     </div>
   );

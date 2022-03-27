@@ -44,12 +44,31 @@ export default function Room() {
     data: schedules = [],
     mutate: mutateSchedules,
   } = useSWR(dateStartAt == null ? '' : `/api/schedule/get?roomId=${roomId}&startTimestamp=${getUnixTime(dateStartAt)}&endTimestamp=${getUnixTime(addWeeks(dateStartAt, 1))}`, fetcher);
-  const addSchedule = useCallback(
-    async ({ start, end, selectionMeta }: { start: Date; end: Date; selectionMeta: SelectedScheduleMeta }) => {
+
+  useEffect(
+    () => {
+      setToday(new Date());
+    },
+    [],
+  );
+
+  const handleTimeSelectCancel = useCallback(
+    () => {
+      setSelectionMeta(undefined);
+      setSelection(undefined);
+    },
+    [],
+  );
+
+  const handleConfirm = useCallback(
+    async () => {
+      if (selection == null || selectionMeta == null) return;
+
+      const { start, end } = selection;
       const schedule: Schedule = {
         name: selectionMeta.name,
-        start,
-        end,
+        start: start,
+        end: end,
         type: ScheduleType.Upcoming,
       };
       mutateSchedules((schedules = []) => [...schedules, schedule], false);
@@ -74,38 +93,16 @@ export default function Room() {
           endTimestamp: getUnixTime(end),
         }),
       });
-      if (!resp.ok) {
+      if (resp.ok) {
+        setSelection(undefined);
+        setSelectionMeta(undefined);
+      } else {
         console.error(`/api/schedule/add returned status ${resp.status} ${resp.statusText}`);
       }
       console.log(await resp.text());
       mutateSchedules();
     },
-    [roomId, tokenState, mutateSchedules],
-  );
-
-  useEffect(
-    () => {
-      setToday(new Date());
-    },
-    [],
-  );
-
-  const handleTimeSelectCancel = useCallback(
-    () => {
-      setSelectionMeta(undefined);
-      setSelection(undefined);
-    },
-    [],
-  );
-
-  const handleConfirm = useCallback(
-    () => {
-      if (selection == null || selectionMeta == null) return;
-
-      const { start, end } = selection;
-      addSchedule({ start, end, selectionMeta });
-    },
-    [addSchedule, selection, selectionMeta],
+    [roomId, selection, selectionMeta, tokenState, mutateSchedules],
   );
 
   const handleScheduleClick = useCallback(
