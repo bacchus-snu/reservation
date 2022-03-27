@@ -7,6 +7,7 @@ import { Schedule, ScheduleType, SelectedScheduleMeta } from './types';
 
 type Props = {
   idx: number;
+  disabled?: boolean;
   heading: React.ReactNode;
   schedules: Schedule[];
   selectedMeta?: SelectedScheduleMeta;
@@ -62,6 +63,7 @@ function checkValid(sortedSchedules: Schedule[], from: number, to: number): bool
 export default function TimetableColumn(props: Props) {
   const {
     idx: columnIdx,
+    disabled,
     schedules,
     selectedMeta,
     onTimeSelectUpdate,
@@ -214,7 +216,9 @@ export default function TimetableColumn(props: Props) {
           key={`schedule-${i}`}
           ref={ref}
           onClick={e => {
-            console.log(currentSchedule);
+            if (disabled) {
+              return;
+            }
             e.stopPropagation();
             onScheduleClick?.(currentSchedule);
           }}
@@ -229,6 +233,7 @@ export default function TimetableColumn(props: Props) {
           <MetaPopup
             key={`schedule-${i}-popper`}
             ref={setPopperElement}
+            disabled={disabled}
             schedule={schedule}
             meta={selectedMeta}
             onChange={onMetaChange}

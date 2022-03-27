@@ -2,30 +2,13 @@ import { addWeeks, fromUnixTime, getUnixTime } from 'date-fns';
 import fetch from 'isomorphic-fetch';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { useCallback, useEffect, useReducer, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import useSWR from 'swr';
 
-import Timetable from 'components/Timetable';
+import InteractiveTimetable from 'components/InteractiveTimetable';
 import { ScheduleType } from 'components/Timetable/types';
 import type { Schedule, SelectedScheduleMeta } from 'components/Timetable/types';
 import { getPayloadFromToken, useTokenStore } from 'components/Token';
-
-function getStartOfWeek(now: Date): Date {
-  const ret = new Date(now);
-  // make UTC+9
-  ret.setUTCHours(ret.getUTCHours() + 9);
-
-  let weekday = now.getUTCDay();
-  if (weekday === 0) weekday = 7;
-  ret.setUTCDate(now.getUTCDate() - (weekday - 1));
-
-  // reset timezone, 00:00:00
-  ret.setUTCMilliseconds(0);
-  ret.setUTCSeconds(0);
-  ret.setUTCMinutes(0);
-  ret.setUTCHours(-9);
-  return ret;
-}
 
 async function fetcher(key: string): Promise<Schedule[]> {
   if (key === '') return [];
@@ -51,37 +34,11 @@ export default function Room() {
   const router = useRouter();
   const roomId = router.query.id;
 
-  const [selectInProgress, setSelectInProgress] = useState<boolean>(false);
   const [selection, setSelection] = useState<{ start: Date, end: Date }>();
   const [selectionMeta, setSelectionMeta] = useState<SelectedScheduleMeta>();
-  const [dateStartAt, dispatchDate] = useReducer(
-    (date: Date | undefined, action: { type: 'reset' } | { type: 'next' } | { type: 'prev' }) => {
-      switch (action.type) {
-        case 'reset':
-          return getStartOfWeek(new Date());
-        case 'next': {
-          if (date == null) {
-            return date;
-          }
-          const ret = new Date(date);
-          ret.setDate(ret.getDate() + 7);
-          return ret;
-        }
-        case 'prev': {
-          if (date == null) {
-            return date;
-          }
-          const ret = new Date(date);
-          ret.setDate(ret.getDate() - 7);
-          return ret;
-        }
-        default:
-          return date;
-      }
-    },
-    undefined,
-  );
+  const [dateStartAt, setDateStartAt] = useState<Date>();
   const [today, setToday] = useState<Date>();
+
   const [tokenState] = useTokenStore();
   const {
     data: schedules = [],
@@ -129,42 +86,12 @@ export default function Room() {
   useEffect(
     () => {
       setToday(new Date());
-      dispatchDate({ type: 'reset' });
-    },
-    [],
-  );
-
-  const handleTimeSelectUpdate = useCallback(
-    data => {
-      setSelectInProgress(true);
-      setSelection(data);
-    },
-    [],
-  );
-
-  const handleTimeSelectDone = useCallback(
-    data => {
-      setSelectInProgress(false);
-      if (Number(data.start) > Date.now()) {
-        setSelectionMeta({
-          name: '',
-          repeatCount: 1,
-          email: '',
-          phoneNumber: '',
-          comment: '',
-        });
-        setSelection(data);
-      } else {
-        setSelectionMeta(undefined);
-        setSelection(undefined);
-      }
     },
     [],
   );
 
   const handleTimeSelectCancel = useCallback(
     () => {
-      setSelectInProgress(false);
       setSelectionMeta(undefined);
       setSelection(undefined);
     },
@@ -207,18 +134,7 @@ export default function Room() {
     [tokenState],
   );
 
-  const handleResetWeek = useCallback(() => dispatchDate({ type: 'reset' }), []);
-  const handleNextWeek = useCallback(() => dispatchDate({ type: 'next' }), []);
-  const handlePrevWeek = useCallback(() => dispatchDate({ type: 'prev' }), []);
-
   const payload = tokenState.token == null ? null : getPayloadFromToken(tokenState.token);
-
-  const schedulesWithSel = [...schedules];
-  if (selection != null) {
-    const type = selectInProgress ? ScheduleType.Selecting : ScheduleType.Selected;
-    const { start, end } = selection;
-    schedulesWithSel.push({ name: '', start, end, type });
-  }
 
   let loginState: React.ReactNode = null;
   if (tokenState.loading) {
@@ -242,26 +158,20 @@ export default function Room() {
         <meta name="description" content="Room reservation system" />
       </Head>
 
-      <main className="py-20 space-y-2">
-        <div className="flex flex-row justify-between items-baseline">
-          <div className="flex flex-row space-x-2">
-            <button className="px-2 py-0.5 border rounded" onClick={handleResetWeek}>오늘</button>
-            <button className="px-2 py-0.5 border rounded" onClick={handlePrevWeek}>{'<'}</button>
-            <button className="px-2 py-0.5 border rounded" onClick={handleNextWeek}>{'>'}</button>
-          </div>
-          <div>{loginState}</div>
-        </div>
-        <Timetable
-          disabled={!(tokenState.token != null && tokenState.error == null)}
-          dateStartAt={dateStartAt}
+      <main className="py-20">
+        <div>{loginState}</div>
+        <InteractiveTimetable
+          schedules={schedules}
           today={today}
-          schedules={schedulesWithSel}
-          selectedMeta={selectionMeta}
-          onTimeSelectUpdate={handleTimeSelectUpdate}
-          onTimeSelectDone={handleTimeSelectDone}
-          onTimeSelectCancel={handleTimeSelectCancel}
-          onMetaChange={setSelectionMeta}
-          onConfirm={handleConfirm}
+          dateStartAt={dateStartAt}
+          disabled={!(tokenState.token != null && tokenState.error == null)}
+          selection={selection}
+          selectionMeta={selectionMeta}
+          onDateUpdate={setDateStartAt}
+          onSelectionUpdate={setSelection}
+          onSelectionMetaUpdate={setSelectionMeta}
+          onSelectionCancel={handleTimeSelectCancel}
+          onAddSchedule={handleConfirm}
           onScheduleClick={handleScheduleClick}
         />
       </main>
