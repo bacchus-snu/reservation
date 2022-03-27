@@ -32,7 +32,7 @@ async function fetcher(key: string): Promise<Schedule[]> {
 
 export default function Room() {
   const router = useRouter();
-  const roomId = router.query.id;
+  const roomId = parseInt(String(router.query.id), 10);
 
   const [selection, setSelection] = useState<{ start: Date, end: Date }>();
   const [selectionMeta, setSelectionMeta] = useState<SelectedScheduleMeta>();
