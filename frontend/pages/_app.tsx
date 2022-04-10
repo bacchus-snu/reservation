@@ -2,6 +2,7 @@ import 'tailwindcss/tailwind.css';
 import type { AppProps } from 'next/app';
 import { useEffect } from 'react';
 
+import { RoomListProvider } from 'components/RoomList';
 import { useTokenStore } from 'components/Token';
 
 function MyApp({ Component, pageProps }: AppProps) {
@@ -45,7 +46,11 @@ function MyApp({ Component, pageProps }: AppProps) {
     };
   }, [refreshToken]);
 
-  return <Component {...pageProps} />;
+  return (
+    <RoomListProvider>
+      <Component {...pageProps} />
+    </RoomListProvider>
+  );
 }
 
 export default MyApp;

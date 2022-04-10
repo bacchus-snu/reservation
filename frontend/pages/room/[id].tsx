@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from 'react';
 import useSWR from 'swr';
 
 import InteractiveTimetable from 'components/InteractiveTimetable';
+import RoomList from 'components/RoomList';
 import { ScheduleType } from 'components/Timetable/types';
 import type { Schedule, SelectedScheduleMeta } from 'components/Timetable/types';
 import { getPayloadFromToken, useTokenStore } from 'components/Token';
@@ -155,22 +156,29 @@ export default function Room() {
         <meta name="description" content="Room reservation system" />
       </Head>
 
-      <main className="py-20">
+      <main className="px-8 py-16 space-y-4">
         <div>{loginState}</div>
-        <InteractiveTimetable
-          schedules={schedules}
-          today={today}
-          dateStartAt={dateStartAt}
-          disabled={!(tokenState.token != null && tokenState.error == null)}
-          selection={selection}
-          selectionMeta={selectionMeta}
-          onDateUpdate={setDateStartAt}
-          onSelectionUpdate={setSelection}
-          onSelectionMetaUpdate={setSelectionMeta}
-          onSelectionCancel={handleTimeSelectCancel}
-          onAddSchedule={handleConfirm}
-          onScheduleClick={handleScheduleClick}
-        />
+        <div className="flex flex-col-reverse lg:flex-row">
+          <InteractiveTimetable
+            className="flex-none lg:flex-1"
+            schedules={schedules}
+            today={today}
+            dateStartAt={dateStartAt}
+            disabled={!(tokenState.token != null && tokenState.error == null)}
+            selection={selection}
+            selectionMeta={selectionMeta}
+            onDateUpdate={setDateStartAt}
+            onSelectionUpdate={setSelection}
+            onSelectionMetaUpdate={setSelectionMeta}
+            onSelectionCancel={handleTimeSelectCancel}
+            onAddSchedule={handleConfirm}
+            onScheduleClick={handleScheduleClick}
+          />
+          <RoomList
+            className="mb-4 lg:mb-0 lg:ml-8 lg:w-1/4 flex-none"
+            selected={{ type: 'room', id: roomId }}
+          />
+        </div>
       </main>
     </div>
   );
