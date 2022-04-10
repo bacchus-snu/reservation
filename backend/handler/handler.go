@@ -275,8 +275,10 @@ func HandleGetRoomsAndCategories(w http.ResponseWriter, r *http.Request) {
 			return err
 		}
 
-		resp.Categories = categories
-		resp.Rooms = rooms
+		resp = &types.GetRoomsAndCategoriesResp{
+			Categories: categories,
+			Rooms:      rooms,
+		}
 		return nil
 	})
 	if err != nil {
