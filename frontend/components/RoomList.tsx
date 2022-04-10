@@ -3,6 +3,11 @@ import * as React from 'react';
 import { createContext, useContext } from 'react';
 import useSWR from 'swr';
 
+type Response = {
+  rooms: ResponseRoom[];
+  categories: ResponseCategory[];
+};
+
 type ResponseRoom = {
   id: number;
   name: string;
@@ -34,28 +39,39 @@ export type RoomsAndCategories = {
   roomsWithoutCategory: Room[];
 };
 
+async function fetcher(key: string): Promise<RoomsAndCategories> {
+  const resp = await fetch(key);
+  if (resp.status !== 200) {
+    throw new Error(`${key} returned status ${resp.status} ${resp.statusText}`);
+  }
+
+  const data: Response = await resp.json();
+  const categoryMap = new Map<number, Category>(
+    data.categories.map(item => [item.id, { ...item, rooms: [] }])
+  );
+  const roomsWithoutCategory: Room[] = [];
+
+  for (const { id, name, seats, categoryId } of data.rooms) {
+    const room = { id, name, seats };
+    const category = categoryMap.get(categoryId);
+    if (category != null) {
+      category.rooms.push(room);
+    } else {
+      roomsWithoutCategory.push(room);
+    }
+  }
+
+  return {
+    categories: [...categoryMap.values()],
+    roomsWithoutCategory,
+  };
+}
+
 const RoomsContext = createContext<RoomsAndCategories | null>(null);
 
 export function RoomListProvider(props: { children?: React.ReactNode }) {
-  // mock
-  const data: RoomsAndCategories = {
-    categories: [
-      {
-        id: 1,
-        name: 'Category',
-        description: '',
-        rooms: [
-          {
-            id: 1,
-            name: '세미나실',
-            seats: 30,
-          },
-        ],
-      },
-    ],
-    roomsWithoutCategory: [
-    ],
-  };
+  const { data = null } = useSWR('/api/rooms/get', fetcher);
+
   return (
     <RoomsContext.Provider value={data}>
       {props.children}
