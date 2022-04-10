@@ -107,7 +107,7 @@ func (tx *Tx) GetAllCategories() ([]*types.Category, error) {
 		return nil, err
 	}
 
-	var categories []*types.Category
+	categories := []*types.Category{}
 	for rows.Next() {
 		var (
 			id          int64
@@ -169,7 +169,7 @@ func (tx *Tx) GetAllRooms() ([]*types.Room, error) {
 		return nil, err
 	}
 
-	var rooms []*types.Room
+	rooms := []*types.Room{}
 	for rows.Next() {
 		var (
 			id         int64
@@ -302,7 +302,7 @@ where s.room_id = $1 and s.during <@ tstzrange(to_timestamp($2), to_timestamp($3
 		return nil, err
 	}
 
-	var schedules []*types.Schedule
+	schedules := []*types.Schedule{}
 	for rows.Next() {
 		var (
 			id              int64
