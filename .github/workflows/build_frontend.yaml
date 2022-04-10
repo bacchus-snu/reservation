@@ -41,5 +41,10 @@ jobs:
 
       - name: Push
         run: |
-          docker tag frontend 642254835236.dkr.ecr.ap-northeast-2.amazonaws.com/bacchus-reservation/frontend:${GITHUB_REF##*/}
-          docker --config .docker push 642254835236.dkr.ecr.ap-northeast-2.amazonaws.com/bacchus-reservation/frontend:${GITHUB_REF##*/}
+          if [[ -v GITHUB_HEAD_REF ]]; then
+            TAG_NAME=$GITHUB_HEAD_REF
+          else
+            TAG_NAME=$GITHUB_REF_NAME
+          fi
+          docker tag frontend 642254835236.dkr.ecr.ap-northeast-2.amazonaws.com/bacchus-reservation/frontend:${TAG_NAME}
+          docker --config .docker push 642254835236.dkr.ecr.ap-northeast-2.amazonaws.com/bacchus-reservation/frontend:${TAG_NAME}
