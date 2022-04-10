@@ -93,7 +93,9 @@ export default function RoomList(props: Props) {
 
   const rooms = useRoomList();
   if (rooms == null) {
-    return null;
+    return (
+      <div />
+    );
   }
 
   const listItems = [];
