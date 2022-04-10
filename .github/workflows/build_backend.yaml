@@ -41,7 +41,7 @@ jobs:
 
       - name: Push
         run: |
-          if [[ -v GITHUB_HEAD_REF ]]; then
+          if [[ -n "$GITHUB_HEAD_REF" ]]; then
             TAG_NAME=$GITHUB_HEAD_REF
           else
             TAG_NAME=$GITHUB_REF_NAME
