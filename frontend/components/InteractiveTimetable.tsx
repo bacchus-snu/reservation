@@ -23,6 +23,8 @@ function getStartOfWeek(now: Date): Date {
 }
 
 type Props = {
+  className?: string;
+
   schedules: Schedule[];
   today?: Date;
   dateStartAt?: Date;
@@ -42,6 +44,7 @@ type Props = {
 
 export default function InteractiveTimetable(props: Props) {
   const {
+    className,
     schedules,
     today,
     dateStartAt,
@@ -102,7 +105,7 @@ export default function InteractiveTimetable(props: Props) {
   }
 
   return (
-    <div className="space-y-2">
+    <div className={`space-y-2 ${className}`}>
       <div className="flex flex-row justify-between items-baseline">
         <div className="flex flex-row space-x-2">
           <button className="px-2 py-0.5 border rounded" onClick={handleResetWeek}>오늘</button>
