@@ -136,7 +136,7 @@ func HandleDeleteSchedule(w http.ResponseWriter, r *http.Request) {
 		return nil
 	})
 	if err != nil {
-		httpError(w, http.StatusBadRequest, "failed to add schedule", err)
+		httpError(w, http.StatusBadRequest, "failed to delete schedule", err)
 		return
 	}
 

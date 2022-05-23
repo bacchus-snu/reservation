@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"io/ioutil"
 
 	"github.com/bacchus-snu/reservation/config"
 	"github.com/bacchus-snu/reservation/types"
@@ -54,6 +55,32 @@ func TruncateForTest(tableName ...string) error {
 		panic("this function should be called only in test")
 	}
 	_, err := db.Exec(fmt.Sprintf("truncate %s", strings.Join(tableName, ",")))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func DropTableForTest(tableName ...string) error {
+	if !config.Config.IsTest {
+		panic("this function should be called only in test")
+	}
+	_, err := db.Exec(fmt.Sprintf("drop table %s", strings.Join(tableName, ",")))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func LoadScriptForTest(filePath string) error {
+	if !config.Config.IsTest {
+		panic("this function should be called only in test")
+	}
+	buf, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		return err
+	}
+	_, err = db.Exec(string(buf))
 	if err != nil {
 		return err
 	}

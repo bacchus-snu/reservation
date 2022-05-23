@@ -194,94 +194,6 @@ func TestHandleAddSchedule(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	}
 	config.Config.ScheduleRepeatLimit = 10
-	{
-		// less than one repeats
-		body := types.AddScheduleReq{
-			RoomId:         1,
-			Reservee:       "doge",
-			Email:          "doge@foo.com",
-			PhoneNumber:    "010",
-			Reason:         "bacchus",
-			StartTimestamp: 10000,
-			EndTimestamp:   11000,
-			Repeats:        0,
-		}
-		b, err := json.Marshal(body)
-		require.Nil(t, err)
-		req := httptest.NewRequest("POST", "/api/schedule/add", bytes.NewReader(b))
-		setJWTToken(t, req, userIdx, username, permissionIdx)
-		w := httptest.NewRecorder()
-
-		handler.HandleAddSchedule(w, req)
-		resp := w.Result()
-		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-	}
-	{
-		// too many repeats
-		body := types.AddScheduleReq{
-			RoomId:         1,
-			Reservee:       "doge",
-			Email:          "doge@foo.com",
-			PhoneNumber:    "010",
-			Reason:         "bacchus",
-			StartTimestamp: 10000,
-			EndTimestamp:   11000,
-			Repeats:        config.Config.ScheduleRepeatLimit + 100,
-		}
-		b, err := json.Marshal(body)
-		require.Nil(t, err)
-		req := httptest.NewRequest("POST", "/api/schedule/add", bytes.NewReader(b))
-		setJWTToken(t, req, userIdx, username, permissionIdx)
-		w := httptest.NewRecorder()
-
-		handler.HandleAddSchedule(w, req)
-		resp := w.Result()
-		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-	}
-	{
-		// invalid time range
-		body := types.AddScheduleReq{
-			RoomId:         1,
-			Reservee:       "doge",
-			Email:          "doge@foo.com",
-			PhoneNumber:    "010",
-			Reason:         "bacchus",
-			StartTimestamp: 11000,
-			EndTimestamp:   10000,
-			Repeats:        1,
-		}
-		b, err := json.Marshal(body)
-		require.Nil(t, err)
-		req := httptest.NewRequest("POST", "/api/schedule/add", bytes.NewReader(b))
-		setJWTToken(t, req, userIdx, username, permissionIdx)
-		w := httptest.NewRecorder()
-
-		handler.HandleAddSchedule(w, req)
-		resp := w.Result()
-		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-	}
-	{
-		// invalid room
-		body := types.AddScheduleReq{
-			RoomId:         123,
-			Reservee:       "doge",
-			Email:          "doge@foo.com",
-			PhoneNumber:    "010",
-			Reason:         "bacchus",
-			StartTimestamp: 10000,
-			EndTimestamp:   11000,
-			Repeats:        1,
-		}
-		b, err := json.Marshal(body)
-		require.Nil(t, err)
-		req := httptest.NewRequest("POST", "/api/schedule/add", bytes.NewReader(b))
-		setJWTToken(t, req, userIdx, username, permissionIdx)
-		w := httptest.NewRecorder()
-
-		handler.HandleAddSchedule(w, req)
-		resp := w.Result()
-		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-	}
 	category := &types.Category{
 		Name:        "test category",
 		Description: "test category description",
@@ -306,70 +218,534 @@ func TestHandleAddSchedule(t *testing.T) {
 	})
 	require.Nil(t, err)
 
+	var tests = []struct {
+		body types.AddScheduleReq
+		want int
+	}{
+		// #0: error (less than one repeats)
+		{
+			types.AddScheduleReq{
+				RoomId:         room.Id,
+				Reservee:       "doge",
+				Email:          "doge@foo.com",
+				PhoneNumber:    "010",
+				Reason:         "bacchus",
+				StartTimestamp: 10000,
+				EndTimestamp:   11000,
+				Repeats:        0,
+			},
+			http.StatusBadRequest,
+		},
+
+		// #1: error (too many repeats)
+		{
+			types.AddScheduleReq{
+				RoomId:         room.Id,
+				Reservee:       "doge",
+				Email:          "doge@foo.com",
+				PhoneNumber:    "010",
+				Reason:         "bacchus",
+				StartTimestamp: 10000,
+				EndTimestamp:   11000,
+				Repeats:        config.Config.ScheduleRepeatLimit + 100,
+			},
+			http.StatusBadRequest,
+		},
+
+		// #2: error (invalid time range)
+		{
+			types.AddScheduleReq{
+				RoomId:         room.Id,
+				Reservee:       "doge",
+				Email:          "doge@foo.com",
+				PhoneNumber:    "010",
+				Reason:         "bacchus",
+				StartTimestamp: 11000,
+				EndTimestamp:   10000,
+				Repeats:        1,
+			},
+			http.StatusBadRequest,
+		},
+
+		// #3: error (invalid room)
+		{
+			types.AddScheduleReq{
+				RoomId:         room.Id + 123,
+				Reservee:       "doge",
+				Email:          "doge@foo.com",
+				PhoneNumber:    "010",
+				Reason:         "bacchus",
+				StartTimestamp: 10000,
+				EndTimestamp:   11000,
+				Repeats:        1,
+			},
+			http.StatusBadRequest,
+		},
+
+		// #4: ok
+		{
+			types.AddScheduleReq{
+				RoomId:         room.Id,
+				Reservee:       "doge",
+				Email:          "doge@foo.com",
+				PhoneNumber:    "010",
+				Reason:         "bacchus",
+				StartTimestamp: 10000,
+				EndTimestamp:   11000,
+				Repeats:        1,
+			},
+			http.StatusOK,
+		},
+
+		// #5: error (overlapping time range)
+		{
+			types.AddScheduleReq{
+				RoomId:         room.Id,
+				Reservee:       "doge",
+				Email:          "doge@foo.com",
+				PhoneNumber:    "010",
+				Reason:         "bacchus",
+				StartTimestamp: 10500,
+				EndTimestamp:   11500,
+				Repeats:        1,
+			},
+			http.StatusBadRequest,
+		},
+
+		// #6: ok (repeat)
+		{
+			types.AddScheduleReq{
+				RoomId:         room.Id,
+				Reservee:       "doge",
+				Email:          "doge@foo.com",
+				PhoneNumber:    "010",
+				Reason:         "bacchus",
+				StartTimestamp: 11000,
+				EndTimestamp:   12000,
+				Repeats:        config.Config.ScheduleRepeatLimit,
+			},
+			http.StatusOK,
+		},
+
+		// #7: error (overlapping time range)
+		{
+			types.AddScheduleReq{
+				RoomId:         room.Id,
+				Reservee:       "doge",
+				Email:          "doge@foo.com",
+				PhoneNumber:    "010",
+				Reason:         "bacchus",
+				StartTimestamp: 11000 + 7*24*60*60,
+				EndTimestamp:   12000 + 7*24*60*60,
+				Repeats:        1,
+			},
+			http.StatusBadRequest,
+		},
+	}
+
+	for idx, tc := range tests {
+		b, err := json.Marshal(tc.body)
+		require.Nil(t, err)
+		req := httptest.NewRequest("POST", "/api/schedule/add", bytes.NewReader(b))
+		setJWTToken(t, req, userIdx, username, permissionIdx)
+		w := httptest.NewRecorder()
+
+		handler.HandleAddSchedule(w, req)
+		resp := w.Result()
+		assert.Equal(t, tc.want, resp.StatusCode, idx)
+	}
+}
+
+func TestHandleDeleteSchedule(t *testing.T) {
+	require.Nil(t, sql.TruncateForTest("categories", "rooms", "schedule_groups", "schedules"))
+
+	category := &types.Category{
+		Name:        "test category",
+		Description: "test category description",
+	}
+	err := sql.WithTx(context.Background(), func(tx *sql.Tx) error {
+		if err := tx.AddCategory(category); err != nil {
+			return err
+		}
+		return nil
+	})
+	require.Nil(t, err)
+	room := &types.Room{
+		Name:       "test room",
+		Seats:      10,
+		CategoryId: category.Id,
+	}
+	err = sql.WithTx(context.Background(), func(tx *sql.Tx) error {
+		if err := tx.AddRoom(room); err != nil {
+			return err
+		}
+		return nil
+	})
+	require.Nil(t, err)
+
+	config.Config.AdminPermissionIdx = 9
+	var users = []struct {
+		userIdx       int
+		username      string
+		permissionIdx int
+	}{
+		{1, "doge", 1},
+		{2, "foo", 1},
+		{1000, "admin", config.Config.AdminPermissionIdx},
+	}
 	{
-		// ok
 		body := types.AddScheduleReq{
 			RoomId:         room.Id,
 			Reservee:       "doge",
-			Email:          "doge@foo.com",
+			Email:          "doge@doge.com",
 			PhoneNumber:    "010",
 			Reason:         "bacchus",
 			StartTimestamp: 10000,
+			EndTimestamp:   10500,
+			Repeats:        1,
+		}
+		b, err := json.Marshal(body)
+		require.Nil(t, err)
+		req := httptest.NewRequest("POST", "/api/schedule/add", bytes.NewReader(b))
+		setJWTToken(t, req, users[0].userIdx, users[0].username, users[0].permissionIdx)
+		w := httptest.NewRecorder()
+
+		handler.HandleAddSchedule(w, req)
+		resp := w.Result()
+		require.Equal(t, resp.StatusCode, http.StatusOK)
+	}
+	{
+		body := types.AddScheduleReq{
+			RoomId:         room.Id,
+			Reservee:       "foo",
+			Email:          "foo@foo.com",
+			PhoneNumber:    "010",
+			Reason:         "bacchus2",
+			StartTimestamp: 10500,
 			EndTimestamp:   11000,
 			Repeats:        1,
 		}
 		b, err := json.Marshal(body)
 		require.Nil(t, err)
 		req := httptest.NewRequest("POST", "/api/schedule/add", bytes.NewReader(b))
-		setJWTToken(t, req, userIdx, username, permissionIdx)
+		setJWTToken(t, req, users[1].userIdx, users[1].username, users[1].permissionIdx)
 		w := httptest.NewRecorder()
 
 		handler.HandleAddSchedule(w, req)
 		resp := w.Result()
-		assert.Equal(t, http.StatusOK, resp.StatusCode)
+		require.Equal(t, resp.StatusCode, http.StatusOK)
 	}
 	{
-		// overlapping time range
 		body := types.AddScheduleReq{
 			RoomId:         room.Id,
 			Reservee:       "doge",
-			Email:          "doge@foo.com",
+			Email:          "doge@doge.com",
 			PhoneNumber:    "010",
 			Reason:         "bacchus",
-			StartTimestamp: 10500,
+			StartTimestamp: 11000,
 			EndTimestamp:   11500,
 			Repeats:        1,
 		}
 		b, err := json.Marshal(body)
 		require.Nil(t, err)
 		req := httptest.NewRequest("POST", "/api/schedule/add", bytes.NewReader(b))
-		setJWTToken(t, req, userIdx, username, permissionIdx)
+		setJWTToken(t, req, users[0].userIdx, users[0].username, users[0].permissionIdx)
 		w := httptest.NewRecorder()
 
 		handler.HandleAddSchedule(w, req)
+		resp := w.Result()
+		require.Equal(t, resp.StatusCode, http.StatusOK)
+	}
+
+	var schedules []*types.Schedule
+	err = sql.WithTx(context.Background(), func(tx *sql.Tx) error {
+		if schedules, err = tx.GetSchedules(room.Id, 10000, 11500); err != nil {
+			return err
+		}
+		return nil
+	})
+	require.Nil(t, err)
+
+	{
+		// no jwt token
+		req := httptest.NewRequest("POST", "/api/schedule/delete", nil)
+		w := httptest.NewRecorder()
+
+		handler.HandleDeleteSchedule(w, req)
+		resp := w.Result()
+		assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+	}
+	{
+		// empty body
+		req := httptest.NewRequest("POST", "/api/schedule/delete", nil)
+		setJWTToken(t, req, users[0].userIdx, users[0].username, users[0].permissionIdx)
+		w := httptest.NewRecorder()
+
+		handler.HandleDeleteSchedule(w, req)
 		resp := w.Result()
 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	}
-	{
-		// repeat
-		body := types.AddScheduleReq{
-			RoomId:         room.Id,
-			Reservee:       "doge",
-			Email:          "doge@foo.com",
-			PhoneNumber:    "010",
-			Reason:         "bacchus",
-			StartTimestamp: 11000,
-			EndTimestamp:   12000,
-			Repeats:        config.Config.ScheduleRepeatLimit,
+
+	var tests = []struct {
+		user struct {
+			userIdx       int
+			username      string
+			permissionIdx int
 		}
-		b, err := json.Marshal(body)
+		body types.DeleteScheduleReq
+		want int
+	}{
+		// ok
+		{
+			user: users[0],
+			body: types.DeleteScheduleReq{
+				ScheduleId:       schedules[2].Id,
+				DeleteAllInGroup: false,
+			},
+			want: http.StatusOK,
+		},
+		// error - try to delete null schedule
+		{
+			user: users[0],
+			body: types.DeleteScheduleReq{
+				ScheduleId:       schedules[2].Id,
+				DeleteAllInGroup: false,
+			},
+			want: http.StatusBadRequest,
+		},
+		// error - try to delete the schules of other reservee
+		{
+			user: users[1],
+			body: types.DeleteScheduleReq{
+				ScheduleId:       schedules[0].Id,
+				DeleteAllInGroup: false,
+			},
+			want: http.StatusBadRequest,
+		},
+		// ok
+		{
+			user: users[1],
+			body: types.DeleteScheduleReq{
+				ScheduleId:       schedules[1].Id,
+				DeleteAllInGroup: false,
+			},
+			want: http.StatusOK,
+		},
+		// ok - admin can delete any schedules
+		{
+			user: users[2],
+			body: types.DeleteScheduleReq{
+				ScheduleId:       schedules[0].Id,
+				DeleteAllInGroup: false,
+			},
+			want: http.StatusOK,
+		},
+	}
+
+	for idx, tc := range tests {
+		b, err := json.Marshal(tc.body)
 		require.Nil(t, err)
-		req := httptest.NewRequest("POST", "/api/schedule/add", bytes.NewReader(b))
-		setJWTToken(t, req, userIdx, username, permissionIdx)
+		req := httptest.NewRequest("POST", "/api/schedule/delete", bytes.NewReader(b))
+		setJWTToken(t, req, tc.user.userIdx, tc.user.username, tc.user.permissionIdx)
 		w := httptest.NewRecorder()
 
-		handler.HandleAddSchedule(w, req)
+		t.Log(tc)
+
+		handler.HandleDeleteSchedule(w, req)
 		resp := w.Result()
-		assert.Equal(t, http.StatusOK, resp.StatusCode)
+		assert.Equal(t, tc.want, resp.StatusCode, idx)
 	}
+}
+
+func TestGetSchedule(t *testing.T) {
+	// TODO
+}
+
+func TestGetScheduleInfo(t *testing.T) {
+	// TODO
+}
+
+func TestHandleGetRoomsAndCategories(t *testing.T) {
+	// TODO
+}
+
+func TestHandleAddRoom(t *testing.T) {
+	require.Nil(t, sql.TruncateForTest("categories", "rooms", "schedule_groups", "schedules"))
+	category := &types.Category{
+		Name:        "test category",
+		Description: "test category description",
+	}
+	err := sql.WithTx(context.Background(), func(tx *sql.Tx) error {
+		if err := tx.AddCategory(category); err != nil {
+			return err
+		}
+		return nil
+	})
+	require.Nil(t, err)
+	config.Config.AdminPermissionIdx = 9
+	var users = []struct {
+		userIdx       int
+		username      string
+		permissionIdx int
+	}{
+		{1, "doge", 1},
+		{1000, "admin", config.Config.AdminPermissionIdx},
+	}
+
+	{
+		// no jwt token
+		req := httptest.NewRequest("POST", "/api/rooms/add", nil)
+		w := httptest.NewRecorder()
+
+		handler.HandleAddRoom(w, req)
+		resp := w.Result()
+		assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+	}
+	{
+		// empty body
+		req := httptest.NewRequest("POST", "/api/rooms/add", nil)
+		setJWTToken(t, req, users[1].userIdx, users[1].username, users[1].permissionIdx)
+		w := httptest.NewRecorder()
+
+		handler.HandleAddRoom(w, req)
+		resp := w.Result()
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	}
+
+	var tests = []struct {
+		user struct {
+			userIdx       int
+			username      string
+			permissionIdx int
+		}
+		body types.AddRoomReq
+		want int
+	}{
+		// #0: ok
+		{
+			user: users[1],
+			body: types.AddRoomReq{
+				Name:       "test room",
+				Seats:      10,
+				CategoryId: category.Id,
+			},
+			want: http.StatusOK,
+		},
+
+		// #1: error (non-admin user cannot add room)
+		{
+			user: users[0],
+			body: types.AddRoomReq{
+				Name:       "test room",
+				Seats:      10,
+				CategoryId: category.Id,
+			},
+			want: http.StatusUnauthorized,
+		},
+
+		// #2: error (invalid category id)
+		{
+			user: users[1],
+			body: types.AddRoomReq{
+				Name:       "test room",
+				Seats:      10,
+				CategoryId: category.Id + 123,
+			},
+			want: http.StatusBadRequest,
+		},
+	}
+
+	for idx, tc := range tests {
+		b, err := json.Marshal(tc.body)
+		require.Nil(t, err)
+		req := httptest.NewRequest("POST", "/api/rooms/add", bytes.NewReader(b))
+		setJWTToken(t, req, tc.user.userIdx, tc.user.username, tc.user.permissionIdx)
+		w := httptest.NewRecorder()
+
+		handler.HandleAddRoom(w, req)
+		resp := w.Result()
+		assert.Equal(t, tc.want, resp.StatusCode, idx)
+	}
+}
+
+func TestHandleAddCategory(t *testing.T) {
+	require.Nil(t, sql.TruncateForTest("categories", "rooms", "schedule_groups", "schedules"))
+	config.Config.AdminPermissionIdx = 9
+	var users = []struct {
+		userIdx       int
+		username      string
+		permissionIdx int
+	}{
+		{1, "doge", 1},
+		{1000, "admin", config.Config.AdminPermissionIdx},
+	}
+
+	{
+		// no jwt token
+		req := httptest.NewRequest("POST", "/api/categories/add", nil)
+		w := httptest.NewRecorder()
+
+		handler.HandleAddCategory(w, req)
+		resp := w.Result()
+		assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+	}
+	{
+		// empty body
+		req := httptest.NewRequest("POST", "/api/categories/add", nil)
+		setJWTToken(t, req, users[1].userIdx, users[1].username, users[1].permissionIdx)
+		w := httptest.NewRecorder()
+
+		handler.HandleAddCategory(w, req)
+		resp := w.Result()
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	}
+
+	var tests = []struct {
+		user struct {
+			userIdx       int
+			username      string
+			permissionIdx int
+		}
+		body types.AddCategoryReq
+		want int
+	}{
+		// #0: ok
+		{
+			user: users[1],
+			body: types.AddCategoryReq{
+				Name:        "test category",
+				Description: "test category description",
+			},
+			want: http.StatusOK,
+		},
+		// #1: error (non-admin user cannot add category)
+		{
+			user: users[0],
+			body: types.AddCategoryReq{
+				Name:        "test category",
+				Description: "test category description",
+			},
+			want: http.StatusUnauthorized,
+		},
+	}
+
+	for idx, tc := range tests {
+		b, err := json.Marshal(tc.body)
+		require.Nil(t, err)
+		req := httptest.NewRequest("POST", "/api/categories/add", bytes.NewReader(b))
+		setJWTToken(t, req, tc.user.userIdx, tc.user.username, tc.user.permissionIdx)
+		w := httptest.NewRecorder()
+
+		handler.HandleAddCategory(w, req)
+		resp := w.Result()
+		assert.Equal(t, tc.want, resp.StatusCode, idx)
+	}
+}
+
+func TestHandleDeleteRoom(t *testing.T) {
+	// TODO
+}
+
+func TestHandleDeleteCategory(t *testing.T) {
+	// TODO
 }
