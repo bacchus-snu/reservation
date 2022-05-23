@@ -4,6 +4,7 @@ import { forwardRef, useCallback } from 'react';
 import { Schedule, SelectedScheduleMeta } from './types';
 
 type MetaPopupProps = {
+  disabled?: boolean;
   schedule: Schedule;
   meta: SelectedScheduleMeta;
   onChange?(meta: SelectedScheduleMeta): void;
@@ -14,7 +15,16 @@ type MetaPopupProps = {
 };
 
 function MetaPopup(props: MetaPopupProps, ref: React.Ref<HTMLFormElement>) {
-  const { schedule, meta, onChange, onConfirm, onCancel, popperStyles, popperAttributes } = props;
+  const {
+    disabled,
+    schedule,
+    meta,
+    onChange,
+    onConfirm,
+    onCancel,
+    popperStyles,
+    popperAttributes,
+  } = props;
 
   const handleChange = useCallback(
     <F extends keyof MetaPopupProps['meta']>(field: F, value: MetaPopupProps['meta'][F]) => {
@@ -56,7 +66,9 @@ function MetaPopup(props: MetaPopupProps, ref: React.Ref<HTMLFormElement>) {
   return (
     <form
       ref={ref}
-      className="p-2 w-60 flex flex-col space-y-2 border-2 border-gray-400 bg-white"
+      className={
+        `p-2 w-60 flex flex-col space-y-2 border-2 border-gray-400 ${disabled ? 'bg-gray-300' : 'bg-white'}`
+      }
       onSubmit={onConfirm}
       style={popperStyles}
       {...popperAttributes}
@@ -69,6 +81,7 @@ function MetaPopup(props: MetaPopupProps, ref: React.Ref<HTMLFormElement>) {
           <span>반복 횟수:</span>
           <select
             className="border"
+            disabled={disabled}
             value={meta.repeatCount.toString()}
             onChange={handleRepeatCountChange}
           >
@@ -85,6 +98,7 @@ function MetaPopup(props: MetaPopupProps, ref: React.Ref<HTMLFormElement>) {
           className="block w-full p-1 border border-gray-400 rounded"
           autoFocus
           required
+          disabled={disabled}
           value={meta.name}
           onChange={handleNameChange}
         />
@@ -95,6 +109,7 @@ function MetaPopup(props: MetaPopupProps, ref: React.Ref<HTMLFormElement>) {
           className="block w-full p-1 border border-gray-400 rounded"
           type="email"
           required
+          disabled={disabled}
           value={meta.email}
           onChange={handleEmailChange}
         />
@@ -104,6 +119,7 @@ function MetaPopup(props: MetaPopupProps, ref: React.Ref<HTMLFormElement>) {
         <input
           className="block w-full p-1 border border-gray-400 rounded"
           type="tel"
+          disabled={disabled}
           value={meta.phoneNumber}
           onChange={handlePhoneNumberChange}
         />
@@ -113,6 +129,7 @@ function MetaPopup(props: MetaPopupProps, ref: React.Ref<HTMLFormElement>) {
         <textarea
           className="block w-full p-1 border border-gray-400 rounded"
           required
+          disabled={disabled}
           value={meta.comment}
           onChange={handleCommentChange}
         />
@@ -121,6 +138,7 @@ function MetaPopup(props: MetaPopupProps, ref: React.Ref<HTMLFormElement>) {
       <div className="flex flex-row justify-end space-x-2">
         <button
           className="px-2 py-0.5 border border-gray-600 rounded-md"
+          disabled={disabled}
           onClick={onCancel}
         >
           취소
@@ -128,6 +146,7 @@ function MetaPopup(props: MetaPopupProps, ref: React.Ref<HTMLFormElement>) {
         <button
           className="px-2 py-0.5 border border-blue-600 rounded-md bg-blue-500 font-bold text-white"
           type="submit"
+          disabled={disabled}
         >
           예약하기
         </button>
