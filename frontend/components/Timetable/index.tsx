@@ -114,7 +114,12 @@ export default function Timetable(props: Props) {
 
   const columns = [];
   for (let i = 0; i < 7; i++) {
-    let headingInner = null;
+    let headingInner = (
+      <>
+        <span className="text-sm md:text-base">&nbsp;</span>
+        <span className="text-xs md:text-sm">&nbsp;</span>
+      </>
+    );
     let isToday = false;
     let schedules: Schedule[] = [];
 
@@ -132,8 +137,8 @@ export default function Timetable(props: Props) {
       const dateStr = formatDate(date, 'yyyy-MM-dd');
       headingInner = (
         <>
-          <span>{weekdayStr}</span>
-          <span className="text-sm">{dateStr}</span>
+          <span className="text-sm md:text-base">{weekdayStr}</span>
+          <span className="text-xs md:text-sm">{dateStr}</span>
         </>
       );
 
@@ -165,7 +170,7 @@ export default function Timetable(props: Props) {
     }
 
     const heading = (
-      <div className={`flex flex-col items-center ${isToday ? 'font-bold' : ''}`}>
+      <div className={`py-0.5 flex flex-col items-center ${isToday ? 'font-bold' : ''}`}>
         {headingInner}
       </div>
     );
@@ -174,6 +179,7 @@ export default function Timetable(props: Props) {
       <TimetableColumn
         key={i}
         idx={i}
+        disabled={disabled}
         heading={heading}
         schedules={schedules}
         selectedMeta={selectedMeta}
